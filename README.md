@@ -125,25 +125,7 @@ This guide assumes **zero electronics experience**.
 
 Ambient LEDs that glow different colors based on repo status — visible from across the room.
 
-```mermaid
-graph LR
-    Pi["🟣 Raspberry Pi"] -- "GPIO 18 (pin 12)" --> R["470Ω Resistor"]
-    R --> DIN["DIN (Data In)"]
-    Pi -- "5V (pin 2)" --> V5["5V (Red wire)"]
-    Pi -- "GND (pin 6)" --> GND["GND (White wire)"]
-    GND -.-> Cap["1000μF Cap ±"]
-    Cap -.-> V5
-
-    subgraph WS2812B LED Strip
-        DIN
-        V5
-        GND
-    end
-
-    style Pi fill:#4B0082,color:#fff
-    style R fill:#555,color:#fff
-    style Cap fill:#555,color:#fff
-```
+![NeoPixel LED Strip Wiring](docs/diagrams/wiring-leds.svg)
 
 **Wiring steps:**
 1. Connect **GPIO 18 (pin 12)** → 470Ω resistor → LED strip **DIN**
@@ -186,19 +168,7 @@ print("✅ LED test passed!")
 
 Physical button that triggers the deploy flow with Copilot safety checks.
 
-```mermaid
-graph LR
-    Pi["🟣 Raspberry Pi"] -- "3.3V (pin 1)" --> A["Button Leg A"]
-    A --- BTN["⏺ BUTTON"]
-    BTN --- B["Button Leg B"]
-    B -- "GPIO 17 (pin 11)" --> Pi
-    B --- R["10kΩ Resistor"]
-    R -- "GND (pin 6)" --> Pi
-
-    style Pi fill:#4B0082,color:#fff
-    style BTN fill:#c0392b,color:#fff
-    style R fill:#555,color:#fff
-```
+![Deploy Push Button Wiring](docs/diagrams/wiring-button.svg)
 
 **How it works:** The 10kΩ resistor "pulls down" GPIO 17 to GND when the button isn't pressed (reads LOW). Pressing the button connects GPIO 17 to 3.3V (reads HIGH).
 
@@ -243,16 +213,7 @@ finally:
 
 Audio alerts for critical events — different tones for different event types.
 
-```mermaid
-graph LR
-    Pi["🟣 Raspberry Pi"] -- "GPIO 13 (pin 33)" --> Pos["Buzzer + (long leg)"]
-    Pos --- BUZ["🔔 BUZZER"]
-    BUZ --- Neg["Buzzer − (short leg)"]
-    Neg -- "GND (pin 34)" --> Pi
-
-    style Pi fill:#4B0082,color:#fff
-    style BUZ fill:#2980b9,color:#fff
-```
+![Piezo Buzzer Wiring](docs/diagrams/wiring-buzzer.svg)
 
 **Only 2 wires — no resistor needed!** Long leg (+) → GPIO 13, short leg (–) → GND.
 

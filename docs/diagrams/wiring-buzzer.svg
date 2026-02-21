@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 260" font-family="'Segoe UI', 'Helvetica Neue', sans-serif">
+  <defs>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#1565c0"/>
+    </marker>
+    <marker id="arrowK" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#546e7a"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="260" rx="12" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="250" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">Piezo Buzzer Wiring (Optional)</text>
+
+  <!-- ===== RASPBERRY PI ===== -->
+  <g transform="translate(30, 50)" filter="url(#shadow)">
+    <rect width="155" height="160" rx="10" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.5"/>
+    <text x="78" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#e8f5e9">Raspberry Pi 5</text>
+
+    <!-- GPIO block -->
+    <rect x="105" y="45" width="38" height="80" rx="4" fill="#1b3320" stroke="#0d1f14" stroke-width="1"/>
+    <text x="124" y="42" text-anchor="middle" font-size="8" font-weight="600" fill="#a5d6a7">GPIO</text>
+
+    <!-- Pin 33: GPIO 13 -->
+    <circle cx="118" cy="68" r="5" fill="#42a5f5" stroke="#1565c0" stroke-width="1"/>
+    <text x="100" y="72" text-anchor="end" font-size="9" font-weight="600" fill="#bbdefb">GPIO 13</text>
+    <text x="148" y="72" font-size="7" fill="#a5d6a7">pin 33</text>
+
+    <!-- Pin 34: GND -->
+    <circle cx="132" cy="103" r="5" fill="#37474f" stroke="#263238" stroke-width="1"/>
+    <text x="100" y="107" text-anchor="end" font-size="9" font-weight="600" fill="#b0bec5">GND</text>
+    <text x="148" y="107" font-size="7" fill="#a5d6a7">pin 34</text>
+  </g>
+
+  <!-- ===== PIEZO BUZZER ===== -->
+  <g transform="translate(310, 55)" filter="url(#shadow)">
+    <rect width="155" height="150" rx="10" fill="#263238" stroke="#37474f" stroke-width="1.5"/>
+    <text x="78" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#eceff1">Piezo Buzzer</text>
+
+    <!-- Buzzer body -->
+    <circle cx="78" cy="70" r="35" fill="#37474f" stroke="#546e7a" stroke-width="2"/>
+    <circle cx="78" cy="70" r="25" fill="#455a64"/>
+    <circle cx="78" cy="70" r="8" fill="#546e7a"/>
+    <!-- Sound waves -->
+    <path d="M 120 55 Q 132 70 120 85" stroke="#90a4ae" stroke-width="1.5" fill="none"/>
+    <path d="M 128 48 Q 143 70 128 92" stroke="#78909c" stroke-width="1.5" fill="none"/>
+
+    <!-- Legs -->
+    <g transform="translate(55, 108)">
+      <line x1="0" y1="0" x2="0" y2="18" stroke="#42a5f5" stroke-width="3" stroke-linecap="round"/>
+      <text x="0" y="30" text-anchor="middle" font-size="10" font-weight="600" fill="#64b5f6">+ long</text>
+    </g>
+    <g transform="translate(100, 108)">
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#546e7a" stroke-width="3" stroke-linecap="round"/>
+      <text x="0" y="28" text-anchor="middle" font-size="10" font-weight="600" fill="#90a4ae">− short</text>
+    </g>
+  </g>
+
+  <!-- ===== WIRES ===== -->
+  <!-- GPIO 13 → Buzzer + (blue wire) -->
+  <path d="M 195 118 C 260 100 310 110 365 162" stroke="#1565c0" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowB)"/>
+  <text x="265" y="96" font-size="8" fill="#1565c0" font-weight="500">GPIO 13 (blue)</text>
+
+  <!-- GND → Buzzer − (black wire) -->
+  <path d="M 195 153 C 260 165 330 170 410 162" stroke="#37474f" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowK)"/>
+  <text x="290" y="178" font-size="8" fill="#546e7a" font-weight="500">GND (black)</text>
+
+  <!-- ===== FOOTER ===== -->
+  <g transform="translate(30, 230)">
+    <line x1="0" y1="0" x2="440" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="0" y="18" font-size="9" fill="#64748b">
+      <tspan font-weight="600">Only 2 wires — no resistor needed!</tspan> Passive buzzer uses PWM for different tones (440Hz, 880Hz, etc).
+    </text>
+  </g>
+</svg>
