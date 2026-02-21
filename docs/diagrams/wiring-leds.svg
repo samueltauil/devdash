@@ -1,146 +1,143 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" font-family="'Segoe UI', 'Helvetica Neue', sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
   <defs>
-    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
-      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/>
-    </filter>
-    <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <path d="M0,0 L8,3 L0,6" fill="#4caf50"/>
-    </marker>
-    <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <path d="M0,0 L8,3 L0,6" fill="#e53935"/>
-    </marker>
-    <marker id="arrowK" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <path d="M0,0 L8,3 L0,6" fill="#546e7a"/>
-    </marker>
+    <marker id="aG" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5" fill="#3fb950"/></marker>
+    <marker id="aR" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5" fill="#f85149"/></marker>
+    <marker id="aK" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5" fill="#8b949e"/></marker>
   </defs>
 
   <!-- Background -->
-  <rect width="700" height="340" rx="12" fill="#f8fafc"/>
+  <rect width="720" height="300" rx="8" fill="#0d1117"/>
+  <rect x="1" y="1" width="718" height="298" rx="8" fill="none" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Title -->
-  <text x="350" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">NeoPixel LED Strip Wiring — WS2812B</text>
+  <!-- Title bar -->
+  <rect x="1" y="1" width="718" height="36" rx="8" fill="#161b22"/>
+  <rect x="1" y="28" width="718" height="9" fill="#161b22"/>
+  <line x1="1" y1="37" x2="719" y2="37" stroke="#30363d"/>
+  <circle cx="20" cy="19" r="5" fill="#f85149"/>
+  <circle cx="36" cy="19" r="5" fill="#d29922"/>
+  <circle cx="52" cy="19" r="5" fill="#3fb950"/>
+  <text x="360" y="23" text-anchor="middle" font-size="13" font-weight="600" fill="#e6edf3">Component 1 · NeoPixel LED Strip (WS2812B)</text>
 
   <!-- ===== RASPBERRY PI ===== -->
-  <g transform="translate(30, 52)" filter="url(#shadow)">
-    <rect width="155" height="240" rx="10" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.5"/>
-    <text x="78" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#e8f5e9">Raspberry Pi 5</text>
+  <g transform="translate(24, 52)">
+    <rect width="130" height="220" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="65" y="22" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">Raspberry Pi 5</text>
+    <line x1="0" y1="30" x2="130" y2="30" stroke="#30363d"/>
 
-    <!-- GPIO block -->
-    <rect x="105" y="50" width="38" height="160" rx="4" fill="#1b3320" stroke="#0d1f14" stroke-width="1"/>
-    <text x="124" y="46" text-anchor="middle" font-size="8" font-weight="600" fill="#a5d6a7">GPIO</text>
+    <!-- Pins -->
+    <g transform="translate(12, 44)">
+      <!-- 5V -->
+      <rect width="106" height="28" rx="6" fill="#0d1117" stroke="#30363d"/>
+      <circle cx="18" cy="14" r="5" fill="#f85149"/>
+      <text x="30" y="18" font-size="11" font-weight="500" fill="#f85149">5V</text>
+      <text x="100" y="18" text-anchor="end" font-size="9" fill="#8b949e">pin 2</text>
 
-    <!-- Pin 2: 5V -->
-    <circle cx="118" cy="68" r="5" fill="#ef5350" stroke="#c62828" stroke-width="1"/>
-    <text x="100" y="72" text-anchor="end" font-size="9" font-weight="600" fill="#ffcdd2">5V</text>
-    <text x="148" y="72" font-size="7" fill="#a5d6a7">pin 2</text>
+      <!-- GND -->
+      <g transform="translate(0, 36)">
+        <rect width="106" height="28" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <circle cx="18" cy="14" r="5" fill="#8b949e"/>
+        <text x="30" y="18" font-size="11" font-weight="500" fill="#8b949e">GND</text>
+        <text x="100" y="18" text-anchor="end" font-size="9" fill="#8b949e">pin 6</text>
+      </g>
 
-    <!-- Pin 6: GND -->
-    <circle cx="118" cy="108" r="5" fill="#37474f" stroke="#263238" stroke-width="1"/>
-    <text x="100" y="112" text-anchor="end" font-size="9" font-weight="600" fill="#b0bec5">GND</text>
-    <text x="148" y="112" font-size="7" fill="#a5d6a7">pin 6</text>
+      <!-- GPIO 18 -->
+      <g transform="translate(0, 72)">
+        <rect width="106" height="28" rx="6" fill="#0d1117" stroke="#30363d"/>
+        <circle cx="18" cy="14" r="5" fill="#3fb950"/>
+        <text x="30" y="18" font-size="11" font-weight="500" fill="#3fb950">GPIO 18</text>
+        <text x="100" y="18" text-anchor="end" font-size="9" fill="#8b949e">pin 12</text>
+      </g>
+    </g>
 
-    <!-- Pin 12: GPIO 18 -->
-    <circle cx="132" cy="148" r="5" fill="#ffa726" stroke="#ef6c00" stroke-width="1"/>
-    <text x="100" y="152" text-anchor="end" font-size="9" font-weight="600" fill="#ffe0b2">GPIO 18</text>
-    <text x="148" y="152" font-size="7" fill="#a5d6a7">pin 12</text>
-
-    <!-- Pi visual -->
-    <rect x="10" y="200" width="60" height="8" rx="2" fill="#1b5e20"/>
-    <rect x="10" y="215" width="60" height="8" rx="2" fill="#1b5e20"/>
-    <text x="78" y="228" text-anchor="middle" font-size="8" fill="#a5d6a7">USB ports</text>
+    <!-- Pi icon -->
+    <text x="65" y="200" text-anchor="middle" font-size="10" fill="#484f58">PWM output</text>
   </g>
 
   <!-- ===== 470Ω RESISTOR ===== -->
-  <g transform="translate(260, 130)">
-    <!-- Resistor body -->
-    <rect x="0" y="0" width="90" height="30" rx="7" fill="#fafafa" stroke="#bdbdbd" stroke-width="1.5"/>
-    <!-- Color bands -->
-    <rect x="14" y="4" width="6" height="22" rx="1.5" fill="#ffd600"/>
-    <rect x="24" y="4" width="6" height="22" rx="1.5" fill="#7b1fa2"/>
-    <rect x="34" y="4" width="6" height="22" rx="1.5" fill="#795548"/>
-    <rect x="50" y="4" width="6" height="22" rx="1.5" fill="#ffd54f"/>
-    <!-- Label -->
-    <text x="45" y="48" text-anchor="middle" font-size="11" font-weight="600" fill="#546e7a">470Ω</text>
-    <text x="45" y="60" text-anchor="middle" font-size="8" fill="#90a4ae">Protects data line</text>
+  <g transform="translate(232, 138)">
+    <rect width="100" height="40" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <!-- Bands -->
+    <rect x="20" y="8" width="6" height="24" rx="2" fill="#d29922"/>
+    <rect x="30" y="8" width="6" height="24" rx="2" fill="#8957e5"/>
+    <rect x="40" y="8" width="6" height="24" rx="2" fill="#7d5530"/>
+    <rect x="56" y="8" width="6" height="24" rx="2" fill="#d29922" opacity="0.6"/>
+    <text x="50" y="56" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">470Ω</text>
+    <text x="50" y="68" text-anchor="middle" font-size="9" fill="#484f58">data protection</text>
   </g>
 
-  <!-- ===== CAPACITOR (optional) ===== -->
-  <g transform="translate(265, 238)">
-    <rect x="0" y="0" width="80" height="34" rx="6" fill="#fafafa" stroke="#bdbdbd" stroke-width="1" stroke-dasharray="5,3"/>
-    <!-- Capacitor symbol -->
-    <line x1="30" y1="8" x2="30" y2="26" stroke="#78909c" stroke-width="2.5"/>
-    <line x1="38" y1="8" x2="38" y2="26" stroke="#78909c" stroke-width="2.5"/>
-    <text x="14" y="20" text-anchor="middle" font-size="10" font-weight="600" fill="#546e7a">+</text>
-    <text x="54" y="20" text-anchor="middle" font-size="10" font-weight="600" fill="#546e7a">−</text>
-    <text x="40" y="48" text-anchor="middle" font-size="10" font-weight="500" fill="#78909c">1000μF</text>
-    <text x="40" y="60" text-anchor="middle" font-size="8" fill="#b0bec5">optional</text>
+  <!-- ===== CAPACITOR ===== -->
+  <g transform="translate(232, 218)">
+    <rect width="100" height="36" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1" stroke-dasharray="4,2"/>
+    <line x1="40" y1="8" x2="40" y2="28" stroke="#8b949e" stroke-width="3" stroke-linecap="round"/>
+    <line x1="50" y1="8" x2="50" y2="28" stroke="#8b949e" stroke-width="3" stroke-linecap="round"/>
+    <text x="28" y="21" text-anchor="middle" font-size="11" font-weight="600" fill="#8b949e">+</text>
+    <text x="62" y="21" text-anchor="middle" font-size="11" font-weight="600" fill="#8b949e">−</text>
+    <text x="50" y="52" text-anchor="middle" font-size="10" font-weight="500" fill="#484f58">1000μF (optional)</text>
   </g>
 
   <!-- ===== WS2812B LED STRIP ===== -->
-  <g transform="translate(460, 52)" filter="url(#shadow)">
-    <rect width="210" height="240" rx="10" fill="#1a1a2e" stroke="#0f3460" stroke-width="1.5"/>
-    <text x="105" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#e0e0e0">WS2812B LED Strip</text>
+  <g transform="translate(440, 52)">
+    <rect width="256" height="220" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="128" y="22" text-anchor="middle" font-size="11" font-weight="600" fill="#e6edf3">WS2812B LED Strip</text>
+    <line x1="0" y1="30" x2="256" y2="30" stroke="#30363d"/>
 
-    <!-- 8 LEDs with glow -->
-    <g transform="translate(13, 38)">
-      <circle cx="0" cy="0" r="11" fill="#ff1744" opacity="0.9"/><circle cx="0" cy="0" r="16" fill="#ff1744" opacity="0.1"/>
-      <circle cx="27" cy="0" r="11" fill="#ff5722" opacity="0.8"/>
-      <circle cx="54" cy="0" r="11" fill="#ffd600" opacity="0.9"/><circle cx="54" cy="0" r="16" fill="#ffd600" opacity="0.1"/>
-      <circle cx="81" cy="0" r="11" fill="#00c853" opacity="0.9"/><circle cx="81" cy="0" r="16" fill="#00c853" opacity="0.1"/>
-      <circle cx="108" cy="0" r="11" fill="#00e676" opacity="0.7"/>
-      <circle cx="135" cy="0" r="11" fill="#2979ff" opacity="0.9"/><circle cx="135" cy="0" r="16" fill="#2979ff" opacity="0.1"/>
-      <circle cx="162" cy="0" r="11" fill="#7c4dff" opacity="0.8"/>
-      <circle cx="189" cy="0" r="11" fill="#e040fb" opacity="0.7"/>
+    <!-- LEDs -->
+    <g transform="translate(16, 42)">
+      <circle cx="0" cy="0" r="10" fill="#f85149" opacity="0.9"/><circle cx="0" cy="0" r="15" fill="#f85149" opacity="0.08"/>
+      <circle cx="28" cy="0" r="10" fill="#f85149" opacity="0.6"/>
+      <circle cx="56" cy="0" r="10" fill="#d29922" opacity="0.9"/><circle cx="56" cy="0" r="15" fill="#d29922" opacity="0.08"/>
+      <circle cx="84" cy="0" r="10" fill="#3fb950" opacity="0.9"/><circle cx="84" cy="0" r="15" fill="#3fb950" opacity="0.08"/>
+      <circle cx="112" cy="0" r="10" fill="#3fb950" opacity="0.6"/>
+      <circle cx="140" cy="0" r="10" fill="#58a6ff" opacity="0.9"/><circle cx="140" cy="0" r="15" fill="#58a6ff" opacity="0.08"/>
+      <circle cx="168" cy="0" r="10" fill="#bc8cff" opacity="0.9"/>
+      <circle cx="196" cy="0" r="10" fill="#f778ba" opacity="0.7"/>
     </g>
 
     <!-- Connection pads -->
-    <g transform="translate(0, 72)">
-      <rect x="15" y="0" width="52" height="28" rx="5" fill="#0f3460" stroke="#1565c0" stroke-width="1"/>
-      <text x="41" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#e0e0e0">DIN</text>
+    <g transform="translate(12, 70)">
+      <rect width="72" height="28" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+      <text x="36" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#3fb950">DIN</text>
 
-      <rect x="79" y="0" width="52" height="28" rx="5" fill="#b71c1c" stroke="#e53935" stroke-width="1"/>
-      <text x="105" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#ffcdd2">5V</text>
+      <rect x="80" y="0" width="72" height="28" rx="6" fill="#0d1117" stroke="#f85149" stroke-width="1"/>
+      <text x="116" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#f85149">5V</text>
 
-      <rect x="143" y="0" width="52" height="28" rx="5" fill="#263238" stroke="#546e7a" stroke-width="1"/>
-      <text x="169" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#b0bec5">GND</text>
+      <rect x="160" y="0" width="72" height="28" rx="6" fill="#0d1117" stroke="#8b949e" stroke-width="1"/>
+      <text x="196" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#8b949e">GND</text>
     </g>
 
-    <!-- Arrow showing data flow -->
-    <line x1="30" y1="60" x2="180" y2="60" stroke="#455a64" stroke-width="1" marker-end="url(#arrowK)"/>
-    <text x="105" y="68" text-anchor="middle" font-size="7" fill="#546e7a">data direction</text>
-
-    <!-- Wire color guide -->
-    <g transform="translate(20, 140)">
-      <text x="0" y="0" font-size="9" font-weight="600" fill="#78909c">Wire colors</text>
-      <line x1="0" y1="12" x2="18" y2="12" stroke="#4caf50" stroke-width="3" stroke-linecap="round"/>
-      <text x="24" y="16" font-size="9" fill="#a5d6a7">Green — Data</text>
-      <line x1="0" y1="28" x2="18" y2="28" stroke="#e53935" stroke-width="3" stroke-linecap="round"/>
-      <text x="24" y="32" font-size="9" fill="#ef9a9a">Red — 5V Power</text>
-      <line x1="0" y1="44" x2="18" y2="44" stroke="#37474f" stroke-width="3" stroke-linecap="round"/>
-      <text x="24" y="48" font-size="9" fill="#78909c">Black — Ground</text>
+    <!-- Wire legend -->
+    <g transform="translate(16, 120)">
+      <text x="0" y="0" font-size="9" font-weight="600" fill="#484f58">WIRE COLORS</text>
+      <line x1="0" y1="12" x2="16" y2="12" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="22" y="16" font-size="9" fill="#8b949e">Green — Data (GPIO 18)</text>
+      <line x1="0" y1="28" x2="16" y2="28" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="22" y="32" font-size="9" fill="#8b949e">Red — 5V Power</text>
+      <line x1="0" y1="44" x2="16" y2="44" stroke="#8b949e" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="22" y="48" font-size="9" fill="#8b949e">Gray — Ground</text>
+      <line x1="120" y1="12" x2="136" y2="12" stroke="#8b949e" stroke-width="2" stroke-linecap="round" stroke-dasharray="4,2"/>
+      <text x="142" y="16" font-size="9" fill="#8b949e">Dashed — Optional</text>
     </g>
 
-    <!-- Note about DIN/DOUT -->
-    <text x="105" y="228" text-anchor="middle" font-size="8" fill="#546e7a">⚠ Check arrow on strip: connect to DIN not DOUT</text>
+    <!-- Note -->
+    <text x="128" y="210" text-anchor="middle" font-size="8" fill="#484f58">Check arrow on strip: connect to DIN not DOUT</text>
   </g>
 
-  <!-- ===== WIRES ===== -->
-  <!-- GPIO 18 → Resistor (green data wire) -->
-  <path d="M 195 200 C 230 200 240 145 260 145" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowG)"/>
-  <!-- Resistor → DIN (green data wire) -->
-  <path d="M 350 145 C 400 145 430 137 456 137" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowG)"/>
+  <!-- ===== WIRES (carefully routed, no overlaps) ===== -->
 
-  <!-- 5V → LED 5V (red power wire) -->
-  <path d="M 195 120 C 320 90 420 90 535 124" stroke="#e53935" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowR)"/>
+  <!-- Wire 1: GPIO 18 → 470Ω → DIN (GREEN, top lane y≈158) -->
+  <path d="M 154 168 L 232 158" stroke="#3fb950" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#aG)"/>
+  <path d="M 332 158 L 452 142" stroke="#3fb950" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#aG)"/>
 
-  <!-- GND → Cap → LED GND (black wire, dashed = through cap) -->
-  <path d="M 195 160 C 230 180 250 240 265 255" stroke="#37474f" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M 345 255 C 420 260 560 200 603 124" stroke="#37474f" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="6,3" marker-end="url(#arrowK)"/>
+  <!-- Wire 2: 5V → LED 5V (RED, upper lane y≈88) -->
+  <path d="M 154 110 L 200 110 Q 220 110 220 88 L 420 88 Q 440 88 440 108 L 440 130 L 520 142" stroke="#f85149" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#aR)"/>
 
-  <!-- GND direct (solid black wire) -->
-  <path d="M 195 160 C 340 190 520 170 603 124" stroke="#37474f" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#arrowK)"/>
+  <!-- Wire 3: GND → LED GND (GRAY, lower lane y≈200) -->
+  <path d="M 154 144 L 200 144 Q 216 144 216 200 L 420 200 Q 440 200 440 180 L 440 150 L 600 142" stroke="#8b949e" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#aK)"/>
 
-  <!-- ===== FOOTER ===== -->
-  <line x1="30" y1="310" x2="670" y2="310" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="30" y="330" font-size="9" fill="#64748b">⚡ Use Pi 5V for ≤8 LEDs only. For longer strips, use an external 5V power supply rated at 60mA per LED.</text>
+  <!-- Wire 3b: GND via capacitor (GRAY dashed) -->
+  <path d="M 216 200 L 216 236 L 232 236" stroke="#8b949e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-dasharray="4,2"/>
+  <path d="M 332 236 L 420 236 Q 440 236 440 216 L 440 200" stroke="#8b949e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-dasharray="4,2"/>
+
+  <!-- Footer -->
+  <text x="24" y="288" font-size="9" fill="#484f58">Use Pi 5V for ≤8 LEDs only. For longer strips, use an external 5V supply rated at 60mA/LED.</text>
 </svg>
