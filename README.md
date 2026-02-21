@@ -125,13 +125,21 @@ This guide assumes **zero electronics experience**.
 
 Ambient LEDs that glow different colors based on repo status — visible from across the room.
 
-![NeoPixel LED Strip Wiring](docs/diagrams/wiring-leds.svg)
+```
+Raspberry Pi              LED Strip (WS2812B)
+──────────────            ──────────────────
+GPIO 18 (pin 12) ──▶ [470Ω] ──▶ DIN
+5V      (pin 2)  ──────────────▶ 5V
+GND     (pin 6)  ──────────────▶ GND
+```
 
-**Wiring steps:**
-1. Connect **GPIO 18 (pin 12)** → 470Ω resistor → LED strip **DIN**
-2. Connect Pi **5V (pin 2)** → LED strip **5V** (for ≤8 LEDs; use external 5V supply for more)
-3. Connect Pi **GND (pin 6)** → LED strip **GND**
-4. Optional: Place 1000μF capacitor across 5V and GND (long leg + to 5V)
+| Pi Pin | Component Pin | Wire Color | Notes |
+|--------|---------------|------------|-------|
+| GPIO 18 (pin 12) | DIN (via 470Ω resistor) | Green | Data signal, PWM output |
+| 5V (pin 2) | 5V | Red | For ≤8 LEDs only; use external 5V supply for more |
+| GND (pin 6) | GND | Black | Common ground |
+
+> **Optional:** Place a 1000μF capacitor across 5V and GND on the strip (long leg to 5V) to smooth power.
 
 **Test:** `sudo python3 test_leds.py`
 
@@ -168,16 +176,21 @@ print("✅ LED test passed!")
 
 Physical button that triggers the deploy flow with Copilot safety checks.
 
-![Deploy Push Button Wiring](docs/diagrams/wiring-button.svg)
+```
+Raspberry Pi              Push Button         Resistor
+──────────────            ───────────         ────────
+3.3V    (pin 1)  ──────▶ Leg A
+GPIO 17 (pin 11) ──────▶ Leg B ──────▶ 10kΩ ──▶ GND
+GND     (pin 6)  ──────────────────────────────▶ GND
+```
+
+| Pi Pin | Component Pin | Wire Color | Notes |
+|--------|---------------|------------|-------|
+| 3.3V (pin 1) | Button leg A | Orange | Power supply side |
+| GPIO 17 (pin 11) | Button leg B | Green | Input with 10kΩ pull-down |
+| GND (pin 6) | 10kΩ resistor (from leg B) | Black | Pull-down to ground |
 
 **How it works:** The 10kΩ resistor "pulls down" GPIO 17 to GND when the button isn't pressed (reads LOW). Pressing the button connects GPIO 17 to 3.3V (reads HIGH).
-
-**Wiring steps:**
-1. Place button straddling the breadboard center gap
-2. Connect Pi **3.3V (pin 1)** → one side of button
-3. Connect Pi **GPIO 17 (pin 11)** → other side of button
-4. Connect **10kΩ resistor** between GPIO 17 row and GND rail
-5. Connect Pi **GND (pin 6)** → breadboard GND rail
 
 **Test:** `python3 test_button.py`
 
@@ -213,9 +226,19 @@ finally:
 
 Audio alerts for critical events — different tones for different event types.
 
-![Piezo Buzzer Wiring](docs/diagrams/wiring-buzzer.svg)
+```
+Raspberry Pi              Piezo Buzzer
+──────────────            ────────────
+GPIO 13 (pin 33) ──────▶ + (long leg)
+GND     (pin 34) ──────▶ − (short leg)
+```
 
-**Only 2 wires — no resistor needed!** Long leg (+) → GPIO 13, short leg (–) → GND.
+| Pi Pin | Component Pin | Wire Color | Notes |
+|--------|---------------|------------|-------|
+| GPIO 13 (pin 33) | + (long leg) | Blue | PWM for tone control |
+| GND (pin 34) | − (short leg) | Black | Ground |
+
+**Only 2 wires — no resistor needed!** Uses PWM for different tones: 880Hz (success), 440Hz (alert), 220Hz (error).
 
 <details>
 <summary>test_buzzer.py</summary>
