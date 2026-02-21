@@ -288,6 +288,73 @@ print("✅ Buzzer test complete!")
 - [ ] 10kΩ resistor between GPIO 17 and GND
 - [ ] All GND wires go to GND pins (not 3.3V or 5V)
 
+### 🔲 Breadboard Layout
+
+Use a standard half-size solderless breadboard (400 tie points, 30 rows). Rows are connected in groups of 5 across each side (a–e and f–j), split by the center gap. The long rails on each edge are power (+) and ground (−).
+
+**Step 1 — Power rails:**
+
+```
+Pi Pin 2  (5V)   ──▶ Red (+) rail     (top side)
+Pi Pin 6  (GND)  ──▶ Blue (−) rail    (top side)
+Pi Pin 1  (3.3V) ──▶ Red (+) rail     (bottom side)
+
+Bridge both Blue (GND) rails together with a short jumper wire.
+```
+
+**Step 2 — Push Button (rows 10–15):**
+
+```
+Row 10, col e  ◄── orange wire ── 3.3V rail (bottom)
+Button legs:   row 10 col e/f  +  row 12 col e/f  (straddles center gap)
+Row 12, col a  ──► green wire  ── Pi Pin 11 (GPIO 17)
+Row 12, col b  ──  10kΩ resistor  ── row 15, col b
+Row 15, col a  ──► black wire  ── Blue (GND) rail
+```
+
+**Step 3 — Piezo Buzzer (rows 20–21):**
+
+```
+Row 20, col a  ◄── buzzer + (long leg)
+Row 21, col a  ◄── buzzer − (short leg)
+Row 20, col e  ──► blue wire   ── Pi Pin 33 (GPIO 13)
+Row 21, col e  ──► black wire  ── Blue (GND) rail
+```
+
+**Step 4 — LED Strip (rows 25–27, strip is off-board):**
+
+```
+Row 25, col a  ◄── green wire ── Pi Pin 12 (GPIO 18)
+Row 25, col b  ──  470Ω resistor  ── row 25, col d
+Row 25, col e  ──► jumper wire ── LED strip DIN
+Row 26, col a  ◄── jumper from Red (+) 5V rail
+Row 26, col e  ──► jumper wire ── LED strip 5V
+Row 27, col a  ◄── jumper from Blue (GND) rail
+Row 27, col e  ──► jumper wire ── LED strip GND
+(Optional: 1000μF capacitor long leg row 26, short leg row 27)
+```
+
+**Row map overview:**
+
+```
+[Red +5V rail]   [Blue GND rail]
+─────────────────────────────────
+Row  1–9:   (empty / future use)
+Row 10–12:  Push button + 10kΩ
+Row 15:     Pull-down resistor to GND
+Row 16–19:  (empty)
+Row 20–21:  Piezo buzzer
+Row 22–24:  (empty)
+Row 25:     LED data + 470Ω resistor
+Row 26:     LED 5V power
+Row 27:     LED ground
+Row 28–30:  (empty / future use)
+[Red +3.3V rail] [Blue GND rail]
+─────────────────────────────────
+```
+
+> **Tips:** Keep wires short and flat. Use consistent colors (red=power, black=ground). Test each component with the test scripts before wiring the next one. This same layout transfers directly to a solderable perfboard for a permanent build.
+
 ---
 
 ## Quick Start
