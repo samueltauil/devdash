@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "devdash"
+version = "0.1.0"
+description = "AI-powered Raspberry Pi developer desk companion using GitHub Copilot SDK"
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+dependencies = [
+    "pygame>=2.5.0",
+    "PyYAML>=6.0",
+    "aiohttp>=3.9.0",
+    "PyGithub>=2.1.0",
+    "github-copilot-sdk>=0.1.0",
+    "aiosqlite>=0.19.0",
+    "python-dateutil>=2.8.0",
+]
+
+[project.optional-dependencies]
+hardware = [
+    "rpi_ws281x>=5.0.0",
+    "RPi.GPIO>=0.7.0",
+]
+voice = [
+    "faster-whisper>=1.0.0",
+    "sounddevice>=0.4.6",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["devdash*"]

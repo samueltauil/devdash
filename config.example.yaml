@@ -1,0 +1,50 @@
+# DevDash Configuration
+# Copy this file to config.yaml and fill in your values
+
+github:
+  token: "ghp_YOUR_TOKEN_HERE"  # Personal access token (repo, workflow scopes)
+  username: "your-github-username"
+  repos:
+    - "owner/repo1"
+    - "owner/repo2"
+  poll_interval: 120  # seconds between GitHub API polls
+
+copilot:
+  cli_path: "copilot"  # Path to copilot CLI binary
+  model: "gpt-4.1"  # Default model for AI sessions
+
+display:
+  width: 480
+  height: 320
+  fps: 30
+  fullscreen: true
+
+gpio:
+  led_pin: 18        # NeoPixel data pin (GPIO 18 = PWM)
+  led_count: 8       # Number of LEDs on strip
+  led_brightness: 50  # 0-255
+  button_pin: 17     # Deploy button (GPIO 17)
+  buzzer_pin: 13     # Piezo buzzer (GPIO 13)
+
+deploy:
+  repo: "owner/repo"          # Which repo to deploy
+  workflow: "deploy.yml"      # GitHub Actions workflow file
+  ref: "main"                 # Branch to deploy
+  environment: "production"
+  min_confidence: 70          # Minimum AI confidence score to allow deploy (%)
+
+standup:
+  schedule_hour: 8    # Hour to generate standup (24h format)
+  lookback_hours: 16  # How far back to look for activity
+
+theme:
+  background: "#1a1a2e"
+  surface: "#16213e"
+  primary: "#0f3460"
+  accent: "#e94560"
+  text: "#eaeaea"
+  text_dim: "#8892a0"
+  success: "#00c853"
+  warning: "#ffd600"
+  error: "#ff1744"
+  info: "#2979ff"
