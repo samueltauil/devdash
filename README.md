@@ -96,51 +96,53 @@ This guide assumes **zero electronics experience**.
 
 ### 🗺️ GPIO Pin Reference
 
-```
-                    Raspberry Pi 5 GPIO Header
-                    (looking at the Pi with USB ports facing you)
+| Left Function | Pin | Pin | Right Function |
+|---:|:---:|:---:|:---|
+| **3.3V** | (1) | (2) | **5V** |
+| GPIO 2 (SDA) | (3) | (4) | **5V** |
+| GPIO 3 (SCL) | (5) | (6) | **GND** |
+| GPIO 4 | (7) | (8) | GPIO 14 |
+| **GND** | (9) | (10) | GPIO 15 |
+| ⭐ **GPIO 17 — BUTTON** | (11) | (12) | ⭐ **GPIO 18 — LEDs (PWM)** |
+| GPIO 27 | (13) | (14) | **GND** |
+| GPIO 22 | (15) | (16) | GPIO 23 |
+| **3.3V** | (17) | (18) | GPIO 24 |
+| GPIO 10 (SPI MOSI) | (19) | (20) | **GND** |
+| GPIO 9 (SPI MISO) | (21) | (22) | GPIO 25 |
+| GPIO 11 (SPI SCLK) | (23) | (24) | GPIO 8 |
+| **GND** | (25) | (26) | GPIO 7 |
+| GPIO 0 | (27) | (28) | GPIO 1 |
+| GPIO 5 | (29) | (30) | **GND** |
+| GPIO 6 | (31) | (32) | GPIO 12 |
+| ⭐ **GPIO 13 — BUZZER** | (33) | (34) | **GND** |
+| GPIO 19 | (35) | (36) | GPIO 16 |
+| GPIO 26 | (37) | (38) | GPIO 20 |
+| **GND** | (39) | (40) | GPIO 21 |
 
-                3.3V  (1) (2)  5V          ← Power pins
-       (SDA) GPIO 2  (3) (4)  5V
-       (SCL) GPIO 3  (5) (6)  GND         ← Ground
-             GPIO 4  (7) (8)  GPIO 14
-                GND  (9) (10) GPIO 15
-   ★ BUTTON GPIO 17 (11) (12) GPIO 18 ★ LEDs (PWM)
-            GPIO 27 (13) (14) GND
-            GPIO 22 (15) (16) GPIO 23
-               3.3V (17) (18) GPIO 24
-    (SPI MOSI) GPIO 10 (19) (20) GND
-    (SPI MISO) GPIO 9  (21) (22) GPIO 25
-    (SPI SCLK) GPIO 11 (23) (24) GPIO 8
-                GND (25) (26) GPIO 7
-             GPIO 0 (27) (28) GPIO 1
-             GPIO 5 (29) (30) GND
-             GPIO 6 (31) (32) GPIO 12
-  ★ BUZZER GPIO 13 (33) (34) GND
-            GPIO 19 (35) (36) GPIO 16
-            GPIO 26 (37) (38) GPIO 20
-                GND (39) (40) GPIO 21
-```
+> Looking at the Pi 5 with USB ports facing you. ⭐ = DevDash pins.
 
 ### Component 1: NeoPixel LED Strip (WS2812B)
 
 Ambient LEDs that glow different colors based on repo status — visible from across the room.
 
-```
-    Raspberry Pi                470Ω Resistor         WS2812B LED Strip
-    ┌──────────┐               ┌───┐                 ┌──────────────────┐
-    │          │               │   │                 │                  │
-    │  GPIO 18 ├──────────────►│   ├────────────────►│ DIN (Data In)    │
-    │  (pin 12)│               │   │                 │                  │
-    │          │               └───┘                 │                  │
-    │      5V  ├─────────────────────────────────────►│ 5V (Red wire)    │
-    │  (pin 2) │          ┌──────────────┐           │                  │
-    │          │          │  1000μF Cap   │           │                  │
-    │          │          │  + ──── –     │           │                  │
-    │     GND  ├──────┬───┤──────────────├───────────►│ GND (White wire) │
-    │  (pin 6) │      │   └──────────────┘           │                  │
-    │          │      │                               └──────────────────┘
-    └──────────┘      └── (All grounds must connect together!)
+```mermaid
+graph LR
+    Pi["🟣 Raspberry Pi"] -- "GPIO 18 (pin 12)" --> R["470Ω Resistor"]
+    R --> DIN["DIN (Data In)"]
+    Pi -- "5V (pin 2)" --> V5["5V (Red wire)"]
+    Pi -- "GND (pin 6)" --> GND["GND (White wire)"]
+    GND -.-> Cap["1000μF Cap ±"]
+    Cap -.-> V5
+
+    subgraph WS2812B LED Strip
+        DIN
+        V5
+        GND
+    end
+
+    style Pi fill:#4B0082,color:#fff
+    style R fill:#555,color:#fff
+    style Cap fill:#555,color:#fff
 ```
 
 **Wiring steps:**
@@ -184,22 +186,18 @@ print("✅ LED test passed!")
 
 Physical button that triggers the deploy flow with Copilot safety checks.
 
-```
-    Raspberry Pi               Breadboard
-    ┌──────────┐              ┌─────────────────────────┐
-    │          │              │                         │
-    │  3.3V    ├──────────────┤──── [Button Leg A]      │
-    │  (pin 1) │              │          │              │
-    │          │              │     [ BUTTON ]          │
-    │          │              │          │              │
-    │ GPIO 17  ├──────────────┤──── [Button Leg B] ──┐  │
-    │ (pin 11) │              │                      │  │
-    │          │              │                 ┌────┤  │
-    │          │              │                 │10kΩ│  │
-    │          │              │                 └────┤  │
-    │     GND  ├──────────────┤─────────────────────┘  │
-    │  (pin 6) │              │                         │
-    └──────────┘              └─────────────────────────┘
+```mermaid
+graph LR
+    Pi["🟣 Raspberry Pi"] -- "3.3V (pin 1)" --> A["Button Leg A"]
+    A --- BTN["⏺ BUTTON"]
+    BTN --- B["Button Leg B"]
+    B -- "GPIO 17 (pin 11)" --> Pi
+    B --- R["10kΩ Resistor"]
+    R -- "GND (pin 6)" --> Pi
+
+    style Pi fill:#4B0082,color:#fff
+    style BTN fill:#c0392b,color:#fff
+    style R fill:#555,color:#fff
 ```
 
 **How it works:** The 10kΩ resistor "pulls down" GPIO 17 to GND when the button isn't pressed (reads LOW). Pressing the button connects GPIO 17 to 3.3V (reads HIGH).
@@ -245,16 +243,15 @@ finally:
 
 Audio alerts for critical events — different tones for different event types.
 
-```
-    Raspberry Pi               Breadboard
-    ┌──────────┐              ┌─────────────────────┐
-    │          │              │                     │
-    │ GPIO 13  ├──────────────┤──── Buzzer (+)      │
-    │ (pin 33) │              │      long leg       │
-    │          │              │    [ BUZZER ]        │
-    │     GND  ├──────────────┤──── Buzzer (–)      │
-    │ (pin 34) │              │      short leg      │
-    └──────────┘              └─────────────────────┘
+```mermaid
+graph LR
+    Pi["🟣 Raspberry Pi"] -- "GPIO 13 (pin 33)" --> Pos["Buzzer + (long leg)"]
+    Pos --- BUZ["🔔 BUZZER"]
+    BUZ --- Neg["Buzzer − (short leg)"]
+    Neg -- "GND (pin 34)" --> Pi
+
+    style Pi fill:#4B0082,color:#fff
+    style BUZ fill:#2980b9,color:#fff
 ```
 
 **Only 2 wires — no resistor needed!** Long leg (+) → GPIO 13, short leg (–) → GND.
@@ -342,27 +339,38 @@ Copy `config.example.yaml` to `config.yaml` and set:
 
 DevDash uses a single `CopilotClient` with multiple specialized AI sessions:
 
-```
-┌────────────────────────────────────────────────────────┐
-│                    DevDash App                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │  PyGame   │  │  GitHub   │  │  GPIO    │             │
-│  │  Touch UI │  │  Service  │  │ Hardware │             │
-│  └─────┬─────┘  └─────┬─────┘  └─────┬────┘            │
-│        │              │              │                  │
-│  ┌─────▼──────────────▼──────────────▼────────────┐    │
-│  │              Copilot SDK Service                │    │
-│  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ │    │
-│  │  │  CI  │ │  PR  │ │Stand-│ │Deploy│ │Contxt│ │    │
-│  │  │Agent │ │Agent │ │  up  │ │Agent │ │Keepr │ │    │
-│  │  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ │    │
-│  │         Single CopilotClient                    │    │
-│  └─────────────────────────────────────────────────┘    │
-│        │                                                │
-│  ┌─────▼──────┐                                        │
-│  │   SQLite   │ Cache + AI Memory + History            │
-│  └────────────┘                                        │
-└────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph DevDash App
+        UI["PyGame Touch UI"]
+        GH["GitHub Service"]
+        HW["GPIO Hardware"]
+
+        UI --> SDK
+        GH --> SDK
+        HW --> SDK
+
+        subgraph SDK["Copilot SDK Service — Single CopilotClient"]
+            CI["CI Agent"]
+            PR["PR Agent"]
+            SU["Standup"]
+            DE["Deploy Agent"]
+            CK["Context Keeper"]
+        end
+
+        SDK --> DB["SQLite — Cache + AI Memory + History"]
+    end
+
+    style SDK fill:#0f3460,color:#eaeaea
+    style UI fill:#16213e,color:#eaeaea
+    style GH fill:#16213e,color:#eaeaea
+    style HW fill:#16213e,color:#eaeaea
+    style DB fill:#16213e,color:#eaeaea
+    style CI fill:#1a1a2e,color:#eaeaea
+    style PR fill:#1a1a2e,color:#eaeaea
+    style SU fill:#1a1a2e,color:#eaeaea
+    style DE fill:#1a1a2e,color:#eaeaea
+    style CK fill:#1a1a2e,color:#eaeaea
 ```
 
 - **CI Diagnosis Agent** — Custom tools for log fetching, code reading, PR creation
