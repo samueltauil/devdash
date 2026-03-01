@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=samuel
 WorkingDirectory=/home/samuel/devdash
-Environment=DISPLAY=:1
+Environment=DISPLAY=:0
 ExecStart=/home/samuel/devdash/.venv/bin/python -m devdash
 Restart=always
 RestartSec=5
