@@ -4,8 +4,8 @@ build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
 name = "devdash"
-version = "0.1.0"
-description = "AI-powered Raspberry Pi developer desk companion using GitHub Copilot SDK"
+version = "0.2.0"
+description = "Voice-first AI Raspberry Pi developer companion using GitHub Copilot SDK"
 requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
@@ -18,17 +18,11 @@ dependencies = [
     "github-copilot-sdk>=0.1.0",
     "aiosqlite>=0.19.0",
     "python-dateutil>=2.8.0",
-]
-
-[project.optional-dependencies]
-hardware = [
-    "rpi_ws281x>=5.0.0",
-    "RPi.GPIO>=0.7.0",
-]
-voice = [
     "faster-whisper>=1.0.0",
     "sounddevice>=0.4.6",
 ]
+
+[project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21.0",

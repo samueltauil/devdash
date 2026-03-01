@@ -38,21 +38,10 @@ class DisplayConfig:
 
 
 @dataclass
-class GPIOConfig:
-    led_pin: int = 18
-    led_count: int = 8
-    led_brightness: int = 50
-    button_pin: int = 17
-    buzzer_pin: int = 13
-
-
-@dataclass
-class DeployConfig:
-    repo: str = ""
-    workflow: str = "deploy.yml"
-    ref: str = "main"
-    environment: str = "production"
-    min_confidence: int = 70
+class VoiceConfig:
+    model_size: str = "medium"
+    sample_rate: int = 16000
+    max_record_seconds: int = 10
 
 
 @dataclass
@@ -86,8 +75,7 @@ class AppConfig:
     github: GitHubConfig = field(default_factory=GitHubConfig)
     copilot: CopilotConfig = field(default_factory=CopilotConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
-    gpio: GPIOConfig = field(default_factory=GPIOConfig)
-    deploy: DeployConfig = field(default_factory=DeployConfig)
+    voice: VoiceConfig = field(default_factory=VoiceConfig)
     standup: StandupConfig = field(default_factory=StandupConfig)
     theme: ThemeConfig = field(default_factory=ThemeConfig)
 

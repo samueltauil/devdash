@@ -1,21 +1,20 @@
-"""DevDash entry point — run with `python -m devdash`."""
+"""DevDash entry point — voice-first conversational interface."""
 
 import asyncio
-import sys
 import signal
 import logging
+
+import pygame
 
 from devdash.config import load_config
 from devdash.database import Database
 from devdash.ui.renderer import Renderer
-from devdash.ui.touch import TouchHandler
-from devdash.ui.screen_manager import ScreenManager
+from devdash.ui.touch import TouchHandler, GestureType
 from devdash.services.github_service import GitHubService
 from devdash.services.copilot_service import CopilotService
+from devdash.services.voice_service import VoiceService
 from devdash.services.system_service import SystemService
-from devdash.hardware.leds import LEDController
-from devdash.hardware.button import ButtonHandler
-from devdash.hardware.buzzer import BuzzerController
+from devdash.screens.conversation import ConversationScreen
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,29 +31,20 @@ async def main():
 
     # Services
     github_svc = GitHubService(config, db)
-    copilot_svc = CopilotService(config)
+    copilot_svc = CopilotService(config, github_service=github_svc, db=db)
+    voice_svc = VoiceService(config)
     system_svc = SystemService()
-
-    # Hardware (gracefully disabled if not on Pi)
-    leds = LEDController(config)
-    button = ButtonHandler(config)
-    buzzer = BuzzerController(config)
 
     # UI
     renderer = Renderer(config)
     touch = TouchHandler(config)
 
-    screen_mgr = ScreenManager(
+    screen = ConversationScreen(
         config=config,
         renderer=renderer,
-        touch=touch,
-        github_service=github_svc,
         copilot_service=copilot_svc,
+        voice_service=voice_svc,
         system_service=system_svc,
-        leds=leds,
-        button=button,
-        buzzer=buzzer,
-        db=db,
     )
 
     # Graceful shutdown
@@ -73,21 +63,40 @@ async def main():
 
     try:
         await copilot_svc.start()
-        leds.start()
-        button.start()
+        await voice_svc.start()
+
+        # Background GitHub data poll
+        asyncio.create_task(_periodic_poll(github_svc, config, shutdown_event))
 
         log.info("DevDash started — %dx%d", config.display.width, config.display.height)
 
-        await screen_mgr.run(shutdown_event)
+        clock = pygame.time.Clock()
+        while not shutdown_event.is_set():
+            for gesture in touch.process_events():
+                if gesture.type == GestureType.TAP:
+                    screen.handle_tap(gesture.x, gesture.y)
+
+            screen.render()
+            clock.tick(config.display.fps)
+            await asyncio.sleep(0)
+
     except KeyboardInterrupt:
         pass
     finally:
         log.info("Cleaning up...")
-        button.stop()
-        leds.stop()
         await copilot_svc.stop()
         await db.close()
         renderer.quit()
+
+
+async def _periodic_poll(github_svc, config, shutdown_event):
+    """Poll GitHub API periodically in the background."""
+    while not shutdown_event.is_set():
+        try:
+            await github_svc.poll_all()
+        except Exception as e:
+            log.error("GitHub poll error: %s", e)
+        await asyncio.sleep(config.github.poll_interval)
 
 
 if __name__ == "__main__":

@@ -19,19 +19,10 @@ display:
   fps: 30
   fullscreen: true
 
-gpio:
-  led_pin: 18        # NeoPixel data pin (GPIO 18 = PWM)
-  led_count: 8       # Number of LEDs on strip
-  led_brightness: 50  # 0-255
-  button_pin: 17     # Deploy button (GPIO 17)
-  buzzer_pin: 13     # Piezo buzzer (GPIO 13)
-
-deploy:
-  repo: "owner/repo"          # Which repo to deploy
-  workflow: "deploy.yml"      # GitHub Actions workflow file
-  ref: "main"                 # Branch to deploy
-  environment: "production"
-  min_confidence: 70          # Minimum AI confidence score to allow deploy (%)
+voice:
+  model_size: "medium"        # Whisper model: tiny, base, small, medium, large
+  sample_rate: 16000          # Audio sample rate in Hz
+  max_record_seconds: 10      # Max voice recording duration
 
 standup:
   schedule_hour: 8    # Hour to generate standup (24h format)

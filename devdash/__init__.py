@@ -1,3 +1,3 @@
-"""DevDash — AI-powered Raspberry Pi developer desk companion."""
+"""DevDash — Voice-first AI Raspberry Pi developer companion."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

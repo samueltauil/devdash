@@ -1,21 +1,20 @@
 [Unit]
-Description=DevDash — AI-Powered Developer Desk Companion
+Description=DevDash — Voice-First AI Developer Companion
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/raspi-demo
-Environment=DISPLAY=:0
-ExecStart=/home/pi/raspi-demo/.venv/bin/python -m devdash
+User=samuel
+WorkingDirectory=/home/samuel/devdash
+ExecStart=/home/samuel/devdash/.venv/bin/python -m devdash
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
-# GPIO cleanup on stop
-ExecStopPost=/usr/bin/python3 -c "import RPi.GPIO as GPIO; GPIO.cleanup()"
+# Audio access for USB microphone
+SupplementaryGroups=audio
 
 [Install]
 WantedBy=multi-user.target

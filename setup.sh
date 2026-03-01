@@ -15,6 +15,7 @@ sudo apt-get install -y -qq \
     python3-pip python3-venv python3-dev \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
     libfreetype6-dev libportmidi-dev \
+    portaudio19-dev \
     git
 
 # Python virtual environment
@@ -29,22 +30,10 @@ echo "📥 Installing Python dependencies..."
 pip install --upgrade pip -q
 pip install -r requirements.txt -q
 
-# Hardware dependencies (Pi only)
-if [ -f /proc/device-tree/model ] && grep -q "Raspberry Pi" /proc/device-tree/model; then
-    echo ""
-    echo "🔌 Detected Raspberry Pi — installing hardware packages..."
-    pip install rpi_ws281x RPi.GPIO adafruit-circuitpython-neopixel-spi -q
-
-    # Enable SPI (needed for NeoPixel fallback on Pi 5)
-    sudo raspi-config nonint do_spi 0
-
-    echo ""
-    echo "🎤 Installing voice input packages (optional)..."
-    pip install faster-whisper sounddevice -q || echo "⚠️  Voice packages failed — voice input will be disabled"
-else
-    echo ""
-    echo "⚠️  Not running on Raspberry Pi — hardware features will be simulated"
-fi
+# Voice dependencies (required)
+echo ""
+echo "🎤 Installing voice input packages..."
+pip install faster-whisper sounddevice -q
 
 # Config file
 if [ ! -f config.yaml ]; then
@@ -58,6 +47,7 @@ fi
 echo ""
 echo "🔤 Setting up fonts..."
 FONT_DIR="devdash/assets/fonts"
+mkdir -p "$FONT_DIR"
 if [ ! -f "$FONT_DIR/DejaVuSans.ttf" ]; then
     cp /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf "$FONT_DIR/" 2>/dev/null || \
     cp /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf "$FONT_DIR/" 2>/dev/null || \
@@ -69,5 +59,5 @@ echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Edit config.yaml with your GitHub token and repos"
-echo "  2. Wire up hardware (see README.md for guide)"
+echo "  2. Connect a USB microphone"
 echo "  3. Run: source .venv/bin/activate && python -m devdash"
