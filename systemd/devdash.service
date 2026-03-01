@@ -7,8 +7,7 @@ Wants=network-online.target
 Type=simple
 User=samuel
 WorkingDirectory=/home/samuel/devdash
-Environment=SDL_FBDEV=/dev/fb0
-Environment=SDL_VIDEODRIVER=fbcon
+Environment=DISPLAY=:1
 ExecStart=/home/samuel/devdash/.venv/bin/python -m devdash
 Restart=always
 RestartSec=5

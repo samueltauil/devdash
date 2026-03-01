@@ -21,37 +21,30 @@ class Renderer:
         self.height = config.display.height
 
         import os
-        # Set up for SPI LCD framebuffer before pygame init
-        if config.display.fullscreen and os.path.exists("/dev/fb0"):
+        # If DISPLAY is set (X11/VNC), let SDL auto-detect.
+        # Otherwise try framebuffer drivers for SPI LCD.
+        if not os.environ.get("DISPLAY") and os.path.exists("/dev/fb0"):
             os.environ.setdefault("SDL_FBDEV", "/dev/fb0")
-            # Try fbcon first, fall back to directfb, then dummy
-            if "SDL_VIDEODRIVER" not in os.environ:
-                os.environ["SDL_VIDEODRIVER"] = "fbcon"
+            for driver in ("fbcon", "linuxfb", "directfb"):
+                os.environ["SDL_VIDEODRIVER"] = driver
+                try:
+                    pygame.init()
+                    break
+                except pygame.error:
+                    pygame.quit()
+            else:
+                os.environ.pop("SDL_VIDEODRIVER", None)
+                pygame.init()
+        else:
+            pygame.init()
 
-        pygame.init()
         flags = pygame.FULLSCREEN if config.display.fullscreen else 0
 
         try:
             self.screen = pygame.display.set_mode((self.width, self.height), flags)
         except pygame.error:
-            # fbcon may fail over SSH — try kmsdrm, then dummy
-            import os
-            for driver in ("kmsdrm", "directfb", "dummy"):
-                os.environ["SDL_VIDEODRIVER"] = driver
-                try:
-                    pygame.quit()
-                    pygame.init()
-                    self.screen = pygame.display.set_mode((self.width, self.height), flags)
-                    log.info("Using SDL video driver: %s", driver)
-                    break
-                except pygame.error:
-                    continue
-            else:
-                log.warning("All video drivers failed — using windowed dummy")
-                os.environ["SDL_VIDEODRIVER"] = "dummy"
-                pygame.quit()
-                pygame.init()
-                self.screen = pygame.display.set_mode((self.width, self.height))
+            log.warning("Fullscreen unavailable — using windowed mode")
+            self.screen = pygame.display.set_mode((self.width, self.height))
 
         pygame.display.set_caption("DevDash")
         pygame.mouse.set_visible(False)
