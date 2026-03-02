@@ -158,13 +158,13 @@ class ConversationScreen:
 
     def _draw_splash(self):
         mid_y = (STATUS_H + self.r.height - BOTTOM_H) // 2
-        mona_y = mid_y - 30
+        mona_y = mid_y - 40
 
-        # draw large Mona
-        self.mona.draw(self.r.screen, self.r.width // 2, mona_y, size=88)
+        # draw large Mona (bigger for 3D detail)
+        self.mona.draw(self.r.screen, self.r.width // 2, mona_y, size=110)
 
         # title
-        ty = mona_y + 58
+        ty = mona_y + 72
         f_h = self.r.fonts.get("heading", self.r.fonts["body"])
         tw = f_h.size(TITLE)[0]
         self.r.draw_text(TITLE, (self.r.width - tw) // 2, ty, "heading", "text")
