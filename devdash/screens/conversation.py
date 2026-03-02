@@ -26,8 +26,8 @@ MSG_GAP     = 8
 BUBBLE_PAD  = 10
 MAX_BUBBLE_W = 430
 
-# Brand
-SUBTITLE    = "Voice AI Companion"
+# Walk-in animation
+WALK_DURATION = 2.5   # seconds for Mona to walk from left to center
 
 
 @dataclass
@@ -54,6 +54,7 @@ class ConversationScreen:
         self._happy_until = 0.0
 
         self.mona = MonaAvatar()
+        self._splash_start = time.time()  # for walk-in animation
 
     # ── helpers ──────────────────────────────────────────────────────
 
@@ -156,71 +157,62 @@ class ConversationScreen:
     # ── splash (no messages yet) ─────────────────────────────────────
 
     def _draw_splash(self):
-        mid_y = (STATUS_H + self.r.height - BOTTOM_H) // 2
+        center_x = self.r.width // 2
+        center_y = (STATUS_H + self.r.height - BOTTOM_H) // 2
 
-        # draw official Octocat SVG (height = available space minus padding)
-        avail = self.r.height - STATUS_H - BOTTOM_H - 80
+        # ── Walk-in animation: Mona enters from the left ─────────────
+        elapsed = time.time() - self._splash_start
+        if elapsed < WALK_DURATION:
+            # Ease-out cubic: fast start, gentle stop
+            t = min(1.0, elapsed / WALK_DURATION)
+            ease = 1.0 - (1.0 - t) ** 3
+            start_x = -60  # off-screen left
+            mona_x = int(start_x + (center_x - start_x) * ease)
+        else:
+            mona_x = center_x
+
+        # Mona + title sizing
+        avail = self.r.height - STATUS_H - BOTTOM_H - 40
         mona_h = min(avail, 180)
-        self.mona.draw(self.r.screen, self.r.width // 2, mid_y - 10, size=mona_h)
+        title_font = self.r.fonts.get("large", self.r.fonts["heading"])
+        title_text = "DevDash"
+        title_h = title_font.get_height()
+        title_w = title_font.size(title_text)[0]
 
-        # ── Stylish DEVDASH title ────────────────────────────────────
-        ty = mid_y + mona_h // 2 - 5
+        # Vertical centering: Mona + small gap + title
+        gap = 4
+        total_h = mona_h + gap + title_h
+        mona_cy = center_y - total_h // 2 + mona_h // 2
+        ty = mona_cy + mona_h // 2 + gap
+
+        # Draw Mona at animated x position
+        self.mona.draw(self.r.screen, mona_x, mona_cy, size=mona_h)
+
+        # Title follows Mona's x position
         accent = self.r.colors.get("accent", (233, 69, 96))
         info = self.r.colors.get("info", (41, 121, 255))
+        letters = title_text
+        spacing = 3
+        total_tw = sum(title_font.size(ch)[0] for ch in letters) + spacing * (len(letters) - 1)
+        lx = mona_x - total_tw // 2
 
-        # Render each letter with gradient color shift
-        letters = "DEVDASH"
-        font = self.r.fonts.get("large", self.r.fonts["heading"])
-        spacing = 4  # extra space between letters
-
-        # Measure total width
-        total_w = sum(font.size(ch)[0] for ch in letters) + spacing * (len(letters) - 1)
-        lx = (self.r.width - total_w) // 2
-
-        # Gradient: accent → info → accent across letters
         t_val = time.time()
         for idx, ch in enumerate(letters):
-            t = idx / (len(letters) - 1)
-            # Smooth gradient with subtle time-based shimmer
+            t = idx / max(1, len(letters) - 1)
             phase = 0.5 + 0.5 * math.sin(t * math.pi + t_val * 0.8)
             r = int(accent[0] + (info[0] - accent[0]) * phase)
             g = int(accent[1] + (info[1] - accent[1]) * phase)
             b = int(accent[2] + (info[2] - accent[2]) * phase)
 
-            # Glow layer (slightly larger, semi-transparent)
-            glow_surf = font.render(ch, True, (r, g, b))
-            glow_surf.set_alpha(40)
-            self.r.screen.blit(glow_surf, (lx - 1, ty - 1))
-            self.r.screen.blit(glow_surf, (lx + 1, ty + 1))
+            glow = title_font.render(ch, True, (r, g, b))
+            glow.set_alpha(40)
+            self.r.screen.blit(glow, (lx - 1, ty - 1))
+            self.r.screen.blit(glow, (lx + 1, ty + 1))
 
-            # Main letter
-            letter_surf = font.render(ch, True, (r, g, b))
-            self.r.screen.blit(letter_surf, (lx, ty))
+            letter = title_font.render(ch, True, (r, g, b))
+            self.r.screen.blit(letter, (lx, ty))
 
-            lx += font.size(ch)[0] + spacing
-
-        # Decorative gradient line
-        line_y = ty + 36
-        lw = 200
-        line_x = (self.r.width - lw) // 2
-        for i in range(lw):
-            t = i / lw
-            fade = (1 - abs(t - 0.5) * 2) ** 1.5
-            phase = 0.5 + 0.5 * math.sin(t * math.pi * 2 + t_val * 1.2)
-            r = int(accent[0] + (info[0] - accent[0]) * phase)
-            g = int(accent[1] + (info[1] - accent[1]) * phase)
-            b = int(accent[2] + (info[2] - accent[2]) * phase)
-            a = int(200 * fade)
-            dot_s = pygame.Surface((1, 2), pygame.SRCALPHA)
-            dot_s.fill((r, g, b, a))
-            self.r.screen.blit(dot_s, (line_x + i, line_y))
-
-        # Subtitle with softer styling
-        sub_y = line_y + 8
-        f_s = self.r.fonts.get("body", self.r.fonts["body"])
-        sw = f_s.size(SUBTITLE)[0]
-        self.r.draw_text(SUBTITLE, (self.r.width - sw) // 2, sub_y,
-                         "body", "text_dim")
+            lx += title_font.size(ch)[0] + spacing
 
     # ── chat mode ────────────────────────────────────────────────────
 
