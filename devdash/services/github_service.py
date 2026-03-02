@@ -39,6 +39,8 @@ class GitHubService:
     async def _poll_prs(self, repo_name: str):
         repo = self.gh.get_repo(repo_name)
         prs = repo.get_pulls(state="open", sort="updated", direction="desc")
+        if prs.totalCount == 0:
+            return
         for pr in prs[:20]:  # Cap at 20
             await self.db.upsert_pr(
                 repo=repo_name,
@@ -52,6 +54,8 @@ class GitHubService:
     async def _poll_ci(self, repo_name: str):
         repo = self.gh.get_repo(repo_name)
         runs = repo.get_workflow_runs(status="completed")
+        if runs.totalCount == 0:
+            return
         for run in runs[:10]:
             if run.conclusion == "failure":
                 await self.db.upsert_ci_run(
