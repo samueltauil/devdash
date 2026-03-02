@@ -80,8 +80,8 @@ class MonaAvatar:
         s = size / 72.0
 
         self._glow(surf, cx, cy, s)
-        self._tentacles(surf, cx, cy + _i(28*s), s)
-        self._body(surf, cx, cy + _i(22*s), s)
+        self._tentacles(surf, cx, cy + _i(32*s), s)
+        self._body(surf, cx, cy + _i(24*s), s)
         self._head(surf, cx, cy, s)
         self._ears(surf, cx, cy, _i(22*s), s)
         self._eyes(surf, cx, cy, s)
@@ -133,34 +133,34 @@ class MonaAvatar:
         pygame.draw.circle(surf, BODY, (cx, cy), _i(22*s))
 
     def _body(self, surf, cx, by, s):
-        w, h = _i(38*s), _i(18*s)
+        w, h = _i(42*s), _i(16*s)
         r = pygame.Rect(cx - w//2, by, w, h)
         pygame.draw.ellipse(surf, BODY, r)
         pygame.draw.ellipse(surf, BODY_LIGHT, r, max(1, _i(s)))
 
     def _ears(self, surf, cx, cy, hr, s):
-        ear_h = _i(18*s)
+        ear_h = _i(12*s)
         for side in (-1, 1):
-            bx = cx + side * _i(15*s)
-            by = cy - hr + _i(8*s)
-            tx = cx + side * _i(20*s)
-            ty = cy - hr - ear_h + _i(6*s)
+            bx = cx + side * _i(14*s)
+            by = cy - hr + _i(6*s)
+            tx = cx + side * _i(18*s)
+            ty = cy - hr - ear_h + _i(4*s)
 
             # wiggle when listening
             if self.state == LISTENING:
-                ty += _i(math.sin(self._st * 8) * 3 * s * side)
+                ty += _i(math.sin(self._st * 8) * 2 * s * side)
 
             outer = [
-                (bx - side * _i(4*s), by),
+                (bx - side * _i(6*s), by),
                 (tx, ty),
-                (bx + side * _i(8*s), by),
+                (bx + side * _i(6*s), by),
             ]
             pygame.draw.polygon(surf, BODY, outer)
 
             inner = [
-                (bx - side * _i(1*s), by - _i(2*s)),
-                (tx - side * _i(1*s), ty + _i(5*s)),
-                (bx + side * _i(5*s), by - _i(2*s)),
+                (bx - side * _i(3*s), by - _i(1*s)),
+                (tx - side * _i(1*s), ty + _i(4*s)),
+                (bx + side * _i(3*s), by - _i(1*s)),
             ]
             pygame.draw.polygon(surf, EAR_PINK, inner)
 
@@ -168,13 +168,13 @@ class MonaAvatar:
 
     def _eyes(self, surf, cx, cy, s):
         spacing = _i(10*s)
-        ey = cy - _i(3*s)
-        erx, ery = _i(7*s), _i(7*s)
-        pr = _i(3.5*s)
+        ey = cy - _i(2*s)
+        erx, ery = _i(8*s), _i(9*s)
+        pr = _i(4.5*s)
 
         # state tweaks
         if self.state == LISTENING:
-            erx, ery, pr = _i(8*s), _i(9*s), _i(4*s)
+            erx, ery, pr = _i(9*s), _i(10*s), _i(5*s)
 
         # blink?
         blink = (self._bt % self.BLINK_EVERY) > (self.BLINK_EVERY - self.BLINK_DUR)
@@ -198,10 +198,14 @@ class MonaAvatar:
                 rect = pygame.Rect(ex - erx, ey - ery, erx*2, ery*2)
                 pygame.draw.ellipse(surf, EYE_WHITE, rect)
                 pygame.draw.circle(surf, PUPIL, (ex + px, ey + py), max(1, pr))
-                # shine
-                sr = max(1, _i(1.5*s))
+                # primary shine
+                sr = max(1, _i(2*s))
                 pygame.draw.circle(surf, SHINE,
                     (ex + px - _i(2*s), ey + py - _i(2*s)), sr)
+                # secondary shine (smaller, lower-right)
+                sr2 = max(1, _i(1*s))
+                pygame.draw.circle(surf, (255, 255, 255),
+                    (ex + px + _i(1*s), ey + py + _i(1*s)), sr2)
 
     # ── mouth ────────────────────────────────────────────────────────
 
@@ -230,18 +234,18 @@ class MonaAvatar:
 
     def _tentacles(self, surf, cx, top_y, s):
         speed = 5.0 if self.state == SPEAKING else 2.5
-        amp   = 4*s if self.state == SPEAKING else 3*s
+        amp   = 4*s if self.state == SPEAKING else 2.5*s
 
         for i in range(5):
             tx = cx - _i(16*s) + i * _i(8*s)
             wave = math.sin(self._t * speed + i * 0.7) * amp
 
             prev = (tx, top_y)
-            for j in range(1, 5):
-                t = j / 4
+            for j in range(1, 4):
+                t = j / 3
                 jx = _i(tx + wave * t * t)
-                jy = _i(top_y + 16*s * t)
-                w = max(1, _i((4 - j) * s))
+                jy = _i(top_y + 12*s * t)
+                w = max(1, _i((3.5 - j) * s))
                 pygame.draw.line(surf, BODY_LIGHT, prev, (jx, jy), w)
                 prev = (jx, jy)
 
