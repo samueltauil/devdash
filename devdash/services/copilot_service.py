@@ -1,18 +1,23 @@
-"""Copilot SDK integration — single unified conversational agent."""
+"""Copilot AI service — Copilot SDK with GitHub Models API fallback."""
 
 from __future__ import annotations
 
-import asyncio
+import json
 import logging
 from typing import Callable, Optional
+
+import httpx
 
 from devdash.config import AppConfig
 
 log = logging.getLogger(__name__)
 
+_MODELS_URL = "https://models.inference.ai.azure.com/chat/completions"
+_DEFAULT_MODEL = "gpt-4o-mini"
+
 
 class CopilotService:
-    """Single Copilot agent handling all DevDash features via natural language."""
+    """AI agent: tries Copilot SDK first, falls back to GitHub Models API."""
 
     def __init__(self, config: AppConfig, github_service=None, db=None):
         self.config = config
@@ -21,9 +26,11 @@ class CopilotService:
         self._client = None
         self._session = None
         self._started = False
+        self._use_models_api = False
+        self._history: list[dict] = []
 
     async def start(self):
-        """Initialize the Copilot SDK client."""
+        """Initialize the Copilot SDK client, fall back to Models API."""
         try:
             from copilot import CopilotClient
 
@@ -35,12 +42,15 @@ class CopilotService:
             self._started = True
             log.info("Copilot SDK client started")
         except ImportError:
-            log.warning("Copilot SDK not installed — AI features disabled")
+            log.info("Copilot SDK not available — using GitHub Models API")
+            self._use_models_api = True
+            self._started = True
         except Exception as e:
-            log.error("Copilot SDK start failed: %s", e)
+            log.warning("Copilot SDK failed (%s) — using GitHub Models API", e)
+            self._use_models_api = True
+            self._started = True
 
     async def stop(self):
-        """Shutdown session and client."""
         if self._session:
             try:
                 await self._session.destroy()
@@ -53,18 +63,92 @@ class CopilotService:
                 pass
         self._started = False
 
+    # ─── System prompt ───
+
+    def _system_prompt(self) -> str:
+        repos = ", ".join(self.config.github.repos) if self.config.github.repos else "none configured"
+        return (
+            "You are DevDash, an AI developer companion on a Raspberry Pi "
+            "with a 3.5\" LCD screen. The developer interacts via voice.\n\n"
+            f"Monitored repositories: {repos}\n\n"
+            "You help with CI/CD, pull requests, standup briefings, "
+            "deployments, and code context questions.\n\n"
+            "Guidelines:\n"
+            "- Be concise — responses display on a 480×320 screen\n"
+            "- Max 3-5 lines per response\n"
+            "- Use emoji sparingly for clarity\n"
+            "- If asked to list repos, list the monitored repos above"
+        )
+
+    # ─── GitHub Models API fallback ───
+
+    async def _chat_models_api(self, message: str,
+                                on_delta: Optional[Callable] = None) -> dict:
+        """Chat via GitHub Models API (OpenAI-compatible)."""
+        token = self.config.github.token
+        if not token:
+            return {"answer": "No GitHub token configured."}
+
+        if not self._history:
+            self._history.append({"role": "system", "content": self._system_prompt()})
+
+        self._history.append({"role": "user", "content": message})
+
+        # Keep conversation compact (last 20 messages + system)
+        if len(self._history) > 21:
+            self._history = [self._history[0]] + self._history[-20:]
+
+        model = getattr(self.config.copilot, "model", _DEFAULT_MODEL)
+        # Map model names to GitHub Models catalog
+        model_map = {"gpt-4.1": "gpt-4o", "gpt-4": "gpt-4o"}
+        api_model = model_map.get(model, _DEFAULT_MODEL)
+
+        payload = {
+            "model": api_model,
+            "messages": self._history,
+            "max_tokens": 200,
+            "temperature": 0.7,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.post(
+                    _MODELS_URL,
+                    headers={
+                        "Authorization": f"Bearer {token}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+
+            answer = data["choices"][0]["message"]["content"]
+            self._history.append({"role": "assistant", "content": answer})
+
+            if on_delta:
+                on_delta(answer)
+
+            return {"answer": answer}
+        except httpx.HTTPStatusError as e:
+            log.error("Models API HTTP error: %s %s", e.response.status_code,
+                      e.response.text[:200])
+            return {"answer": f"API error: {e.response.status_code}"}
+        except Exception as e:
+            log.error("Models API error: %s", e)
+            return {"answer": f"Error: {e}"}
+
+    # ─── Copilot SDK path ───
+
     async def _ensure_session(self):
-        """Get or create the unified conversation session."""
         if not self._started:
-            raise RuntimeError("Copilot SDK not started")
+            raise RuntimeError("AI service not started")
         if self._session is None:
-            self._session = await self._client.create_session(self._build_config())
-            log.info("Created unified Copilot session")
+            self._session = await self._client.create_session(self._build_sdk_config())
+            log.info("Created Copilot SDK session")
         return self._session
 
-    # ─── Tools ───
-
-    def _build_tools(self) -> list:
+    def _build_sdk_config(self) -> dict:
         from pydantic import BaseModel, Field
         from copilot import define_tool
 
@@ -83,86 +167,15 @@ class CopilotService:
                 return {"run_id": params.run_id, "logs": logs[-3000:]}
             return {"error": "GitHub service not available"}
 
-        class GetFileParams(BaseModel):
-            repo: str = Field(description="Repository in owner/name format")
-            path: str = Field(description="File path in the repository")
-            ref: str = Field(default="main", description="Git ref")
-
-        @define_tool(description="Read a source file from a repository")
-        async def get_file_contents(params: GetFileParams) -> str:
-            if github_svc:
-                return await github_svc.get_file_contents(params.repo, params.path, params.ref)
-            return "File unavailable"
-
-        class GetPRDetailsParams(BaseModel):
-            repo: str = Field(description="Repository in owner/name format")
-            pr_number: int = Field(description="Pull request number")
-
-        @define_tool(description="Fetch PR diff and metadata for analysis")
-        async def get_pr_details(params: GetPRDetailsParams) -> dict:
-            if github_svc:
-                diff = await github_svc.get_pr_diff(params.repo, params.pr_number)
-                return {"repo": params.repo, "pr_number": params.pr_number, "diff": diff[:3000]}
-            return {"error": "GitHub service not available"}
-
         class GetActivityParams(BaseModel):
             repo: str = Field(description="Repository in owner/name format")
             hours: int = Field(default=16, description="Hours to look back")
 
-        @define_tool(description="Get recent commits, PRs, and issues activity for a repo")
+        @define_tool(description="Get recent commits, PRs, and issues activity")
         async def get_repo_activity(params: GetActivityParams) -> dict:
             if github_svc:
                 return await github_svc.get_recent_activity(params.repo, params.hours)
             return {"repo": params.repo, "hours": params.hours}
-
-        class SafetyCheckParams(BaseModel):
-            repo: str = Field(description="Repository to check")
-
-        @define_tool(description="Run pre-deployment safety checks on a repository")
-        async def run_safety_check(params: SafetyCheckParams) -> dict:
-            if github_svc:
-                return {"repo": params.repo, "ci_status": "checked"}
-            return {"repo": params.repo}
-
-        class DispatchWorkflowParams(BaseModel):
-            repo: str = Field(description="Repository in owner/name format")
-            workflow: str = Field(description="Workflow file name")
-            ref: str = Field(default="main", description="Git ref to deploy")
-
-        @define_tool(description="Trigger a GitHub Actions workflow deployment")
-        async def dispatch_workflow(params: DispatchWorkflowParams) -> dict:
-            if github_svc:
-                return await github_svc.dispatch_workflow(params.repo, params.workflow, params.ref)
-            return {"error": "GitHub service not available"}
-
-        class QueryKBParams(BaseModel):
-            question: str = Field(description="Search query for the knowledge base")
-
-        @define_tool(description="Search the local knowledge base for codebase context")
-        async def query_knowledge_base(params: QueryKBParams) -> list:
-            if db:
-                return await db.query_knowledge(params.question)
-            return []
-
-        class SaveKBParams(BaseModel):
-            content: str = Field(description="Knowledge to save")
-            source: str = Field(description="Source of this knowledge")
-
-        @define_tool(description="Save new knowledge about the codebase for future reference")
-        async def save_knowledge(params: SaveKBParams) -> str:
-            if db:
-                await db.save_knowledge(params.content, params.source)
-                return f"Saved: {params.content[:50]}..."
-            return "Database not available"
-
-        class GetFailedCIRunsParams(BaseModel):
-            repo: str = Field(default="", description="Optional repo filter")
-
-        @define_tool(description="Get list of recent failed CI runs from cache")
-        async def get_failed_ci_runs(params: GetFailedCIRunsParams) -> list:
-            if db:
-                return await db.get_failed_runs(params.repo or None)
-            return []
 
         class GetOpenPRsParams(BaseModel):
             repo: str = Field(default="", description="Optional repo filter")
@@ -174,56 +187,15 @@ class CopilotService:
                 return await db.get_pending_prs(repos)
             return []
 
-        return [
-            fetch_ci_logs, get_file_contents, get_pr_details,
-            get_repo_activity, run_safety_check, dispatch_workflow,
-            query_knowledge_base, save_knowledge,
-            get_failed_ci_runs, get_open_prs,
-        ]
-
-    # ─── Session config ───
-
-    def _build_config(self) -> dict:
-        repos = ", ".join(self.config.github.repos) if self.config.github.repos else "none configured"
-
         return {
             "model": self.config.copilot.model,
             "streaming": True,
-            "tools": self._build_tools(),
-            "infinite_sessions": {
-                "enabled": True,
-                "background_compaction_threshold": 0.75,
-                "buffer_exhaustion_threshold": 0.90,
-            },
-            "system_message": {
-                "content": (
-                    "You are DevDash, an AI developer companion on a Raspberry Pi "
-                    "with a 3.5\" LCD screen. The developer interacts via voice.\n\n"
-                    f"Monitored repositories: {repos}\n\n"
-                    "You can help with:\n"
-                    "- **CI/CD**: Check failed runs, diagnose errors, suggest fixes\n"
-                    "- **Pull Requests**: List open PRs, analyze diffs, assess risk\n"
-                    "- **Standup**: Generate daily briefings of repo activity\n"
-                    "- **Deployments**: Safety checks, trigger workflow deploys\n"
-                    "- **Code Context**: Answer questions, save/query knowledge\n\n"
-                    "Guidelines:\n"
-                    "- Be concise — responses display on a 480×320 screen\n"
-                    "- Use emoji sparingly for clarity\n"
-                    "- Use tools proactively to fetch real data\n"
-                    "- For CI questions → get_failed_ci_runs or fetch_ci_logs\n"
-                    "- For PR questions → get_open_prs or get_pr_details\n"
-                    "- For standup → get_repo_activity for each repo\n"
-                    "- For deploys → run_safety_check first, confirm before dispatch\n"
-                    "- Save useful learnings to knowledge base automatically\n"
-                    "- Max 5-8 lines per response"
-                ),
-            },
+            "tools": [fetch_ci_logs, get_repo_activity, get_open_prs],
+            "system_message": {"content": self._system_prompt()},
         }
 
-    # ─── Public API ───
-
-    async def chat(self, message: str, on_delta: Optional[Callable] = None) -> dict:
-        """Send a message and get a streaming response."""
+    async def _chat_sdk(self, message: str,
+                         on_delta: Optional[Callable] = None) -> dict:
         from copilot.generated.session_events import SessionEventType
 
         session = await self._ensure_session()
@@ -242,3 +214,14 @@ class CopilotService:
         session.on(on_event)
         await session.send_and_wait({"prompt": message})
         return {"answer": result_text}
+
+    # ─── Public API ───
+
+    async def chat(self, message: str, on_delta: Optional[Callable] = None) -> dict:
+        """Send a message and get a response."""
+        if not self._started:
+            return {"answer": "AI service not started."}
+
+        if self._use_models_api:
+            return await self._chat_models_api(message, on_delta)
+        return await self._chat_sdk(message, on_delta)

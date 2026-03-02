@@ -324,12 +324,12 @@ class MonaAvatar:
             for i in range(3):
                 phase = (self._st - i * 0.4) % 1.6
                 if phase < 1.0:
-                    frac = (min(1.0, phase / 0.2)
-                            * max(0.0, 1 - (phase - 0.4) / 0.6))
+                    frac = min(1.0, min(1.0, phase / 0.2)
+                              * max(0.0, 1 - (phase - 0.4) / 0.6))
                     r = max(1, _i((4 + i * 2) * s * frac))
                     dx = cx + _i(55 * s) + i * _i(12 * s)
                     dy = cy - _i(40 * s) - i * _i(8 * s)
-                    a = _i(200 * frac)
+                    a = max(0, min(255, _i(200 * frac)))
                     ds = pygame.Surface((r * 2 + 2, r * 2 + 2),
                                         pygame.SRCALPHA)
                     pygame.draw.circle(ds, (*GLOW_MAP[THINKING], a),
@@ -341,7 +341,7 @@ class MonaAvatar:
                 phase = (self._st * 2 + i * 0.5) % 2.0
                 if phase < 1.4:
                     arc_r = _i((20 + 22 * phase) * s)
-                    a = _i(140 * (1 - phase / 1.4))
+                    a = max(0, min(255, _i(140 * (1 - phase / 1.4))))
                     arc_s = pygame.Surface((arc_r * 2, arc_r * 2),
                                            pygame.SRCALPHA)
                     pygame.draw.arc(arc_s, (*GLOW_MAP[LISTENING], a),
