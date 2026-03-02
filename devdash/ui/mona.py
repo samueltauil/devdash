@@ -106,6 +106,14 @@ class MonaAvatar:
             self._cache[height] = self._render_svg(height)
         return self._cache[height]
 
+    def _get_flipped(self, height: int) -> pygame.Surface:
+        """Get horizontally flipped SVG surface (cached)."""
+        key = f"flip_{height}"
+        if key not in self._cache:
+            c = self._get(height)
+            self._cache[key] = pygame.transform.flip(c["surf"], True, False)
+        return self._cache[key]
+
     def _render_svg(self, target_h: int) -> dict:
         """Render the SVG to a pygame Surface at the given height."""
         scale = target_h / _SVG_H
@@ -150,8 +158,12 @@ class MonaAvatar:
 
     # ── Draw full ────────────────────────────────────────────────────
 
-    def draw(self, surf: pygame.Surface, cx: int, cy: int, size: int = 72):
-        """Draw Mona centered at (cx, cy). *size* = desired height in px."""
+    def draw(self, surf: pygame.Surface, cx: int, cy: int, size: int = 72,
+             facing: int = 0):
+        """Draw Mona centered at (cx, cy). *size* = desired height in px.
+
+        *facing*: 0 = forward, 1 = facing right, -1 = facing left.
+        """
         self._tick()
         c = self._get(size)
         s = c["scale"]
@@ -159,17 +171,21 @@ class MonaAvatar:
         # Glow aura behind SVG
         self._glow(surf, cx, cy, size, s)
 
-        # Blit the full SVG
+        # Blit the full SVG (or flipped version for sideways facing)
         bx = cx - c["w"] // 2
         by = cy - c["h"] // 2
-        surf.blit(c["surf"], (bx, by))
+        if facing == -1:
+            surf.blit(self._get_flipped(size), (bx, by))
+        else:
+            surf.blit(c["surf"], (bx, by))
 
-        # Overlay animated eyes (cover original pupils with animated ones)
-        self._animated_eyes(surf, cx, cy, c)
+        # Overlay animated eyes only when facing forward
+        if facing == 0:
+            self._animated_eyes(surf, cx, cy, c)
 
-        # Overlay animated mouth when speaking
-        if self.state in (SPEAKING, HAPPY):
-            self._animated_mouth(surf, cx, cy, c)
+            # Overlay animated mouth when speaking
+            if self.state in (SPEAKING, HAPPY):
+                self._animated_mouth(surf, cx, cy, c)
 
         # State effects
         self._effects(surf, cx, cy, s)
