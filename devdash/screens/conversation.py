@@ -179,65 +179,11 @@ class ConversationScreen:
         mona_cy = center_y - total_h // 2 + mona_h // 2
         ty = mona_cy + mona_h // 2 + gap
 
-        # ── Wander state machine ─────────────────────────────────────
-        now = time.time()
-        dt = now - (self._splash_start + self._wander_timer)
-        wander_range = self.r.width * 0.3  # how far Mona walks from center
-        facing = 0  # 0=forward, 1=right, -1=left
+        # ── Wander disabled — Mona stays centered ────────────────────
+        mona_x = center_x
 
-        if self._wander_state == "idle":
-            self._wander_x = 0.0
-            elapsed_idle = now - self._splash_start - self._wander_timer
-            if elapsed_idle > WANDER_PAUSE:
-                # Start a new wander — alternate direction
-                self._wander_dir *= -1
-                self._wander_state = "walk_out"
-                self._wander_timer = now - self._splash_start
-
-        elif self._wander_state == "walk_out":
-            elapsed = now - self._splash_start - self._wander_timer
-            if elapsed < WANDER_WALK:
-                t = elapsed / WANDER_WALK
-                ease = t * t * (3 - 2 * t)  # smoothstep
-                self._wander_x = ease * self._wander_dir
-                facing = self._wander_dir
-            else:
-                self._wander_x = float(self._wander_dir)
-                self._wander_state = "pause_side"
-                self._wander_timer = now - self._splash_start
-
-        elif self._wander_state == "pause_side":
-            elapsed = now - self._splash_start - self._wander_timer
-            self._wander_x = float(self._wander_dir)
-            facing = 0  # turn to face forward while paused
-            if elapsed > WANDER_WAIT:
-                self._wander_state = "walk_back"
-                self._wander_timer = now - self._splash_start
-
-        elif self._wander_state == "walk_back":
-            elapsed = now - self._splash_start - self._wander_timer
-            if elapsed < WANDER_RETURN:
-                t = elapsed / WANDER_RETURN
-                ease = t * t * (3 - 2 * t)
-                self._wander_x = self._wander_dir * (1.0 - ease)
-                facing = -self._wander_dir  # facing back toward center
-            else:
-                self._wander_x = 0.0
-                self._wander_state = "idle"
-                self._wander_timer = now - self._splash_start
-
-        mona_x = int(center_x + self._wander_x * wander_range)
-
-        # Add a subtle bob while walking
-        if self._wander_state in ("walk_out", "walk_back"):
-            bob = int(3 * abs(math.sin(now * 5)))
-            mona_cy_draw = mona_cy - bob
-        else:
-            mona_cy_draw = mona_cy
-
-        # Draw Mona with facing direction
-        self.mona.draw(self.r.screen, mona_x, mona_cy_draw, size=mona_h,
-                       facing=facing)
+        # Draw Mona
+        self.mona.draw(self.r.screen, mona_x, mona_cy, size=mona_h)
 
         # Title stays centered (doesn't follow Mona)
         accent = self.r.colors.get("accent", (233, 69, 96))
