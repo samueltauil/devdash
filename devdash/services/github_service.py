@@ -64,7 +64,10 @@ class GitHubService:
 
     def _get_pr_ci_status(self, pr) -> str:
         try:
-            commit = pr.get_commits().reversed[0]
+            commits = list(pr.get_commits())
+            if not commits:
+                return "unknown"
+            commit = commits[-1]
             statuses = commit.get_combined_status()
             return statuses.state  # success, failure, pending
         except Exception:
