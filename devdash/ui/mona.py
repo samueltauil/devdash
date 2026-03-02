@@ -14,14 +14,14 @@ import pygame
 
 # ── Palette ──────────────────────────────────────────────────────────
 
-BODY        = (52, 52, 72)
-BODY_DARK   = (38, 38, 55)
-BODY_LIGHT  = (68, 68, 90)
-EAR_PINK    = (233, 69, 96)
-EYE_WHITE   = (235, 235, 245)
-PUPIL       = (25, 25, 40)
-SHINE       = (200, 210, 230)
-MOUTH_COLOR = (210, 75, 100)
+BODY        = (55, 55, 75)
+BODY_DARK   = (40, 40, 58)
+BODY_LIGHT  = (72, 72, 95)
+EAR_INNER   = (80, 65, 85)
+EYE_WHITE   = (240, 240, 248)
+PUPIL       = (22, 22, 36)
+SHINE       = (255, 255, 255)
+MOUTH_COLOR = (180, 80, 105)
 
 GLOW_LISTEN = (41, 121, 255)
 GLOW_THINK  = (255, 214, 0)
@@ -38,8 +38,8 @@ HAPPY     = "happy"
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
-def _i(val: float) -> int:
-    return int(round(val))
+def _i(v: float) -> int:
+    return int(round(v))
 
 
 # ── Avatar ───────────────────────────────────────────────────────────
@@ -47,22 +47,20 @@ def _i(val: float) -> int:
 class MonaAvatar:
     """Animated Mona octocat.  Call *draw()* every frame."""
 
-    BLINK_EVERY = 3.6   # seconds between blinks
-    BLINK_DUR   = 0.13  # how long a blink lasts
+    BLINK_EVERY = 3.6
+    BLINK_DUR   = 0.13
 
     def __init__(self):
         self.state: str = IDLE
-        self._t   = 0.0          # global clock
-        self._st  = 0.0          # time-in-current-state
-        self._bt  = 0.0          # blink timer
+        self._t   = 0.0
+        self._st  = 0.0
+        self._bt  = 0.0
         self._prev = time.monotonic()
 
     def set_state(self, state: str):
         if state != self.state:
             self.state = state
             self._st = 0.0
-
-    # ── tick ─────────────────────────────────────────────────────────
 
     def _tick(self):
         now = time.monotonic()
@@ -72,109 +70,107 @@ class MonaAvatar:
         self._st += dt
         self._bt += dt
 
-    # ── public draw entry points ─────────────────────────────────────
+    # ── public entry points ──────────────────────────────────────────
 
     def draw(self, surf: pygame.Surface, cx: int, cy: int, size: int = 72):
-        """Full Mona at *(cx, cy)* with *size* ≈ head diameter."""
+        """Full Mona centered at (cx, cy). *size* ≈ head diameter."""
         self._tick()
         s = size / 72.0
+        hr = _i(24 * s)          # head radius
 
         self._glow(surf, cx, cy, s)
-        self._tentacles(surf, cx, cy + _i(32*s), s)
-        self._body(surf, cx, cy + _i(24*s), s)
-        self._head(surf, cx, cy, s)
-        self._ears(surf, cx, cy, _i(22*s), s)
+        self._tentacles(surf, cx, cy + _i(30 * s), s)
+        self._body(surf, cx, cy + _i(24 * s), s)
+        self._head(surf, cx, cy, hr)
+        self._ears(surf, cx, cy, hr, s)
         self._eyes(surf, cx, cy, s)
         self._mouth(surf, cx, cy, s)
         self._effects(surf, cx, cy, s)
 
     def draw_mini(self, surf: pygame.Surface, cx: int, cy: int, size: int = 28):
-        """Tiny Mona for the bottom bar — head + ears + eyes only."""
+        """Tiny Mona for the bottom bar."""
         self._tick()
         s = size / 72.0
         hr = _i(22 * s)
 
+        # head
         pygame.draw.circle(surf, BODY, (cx, cy), hr)
 
-        # mini ears
+        # ears — small rounded bumps
         for side in (-1, 1):
-            bx = cx + side * _i(12*s)
-            pts = [
-                (bx, cy - hr + _i(4*s)),
-                (bx + side * _i(6*s), cy - hr - _i(8*s)),
-                (bx + side * _i(11*s), cy - hr + _i(4*s)),
-            ]
-            pygame.draw.polygon(surf, BODY, pts)
-            inner = [
-                (bx + side * _i(2*s), cy - hr + _i(4*s)),
-                (bx + side * _i(6*s), cy - hr - _i(4*s)),
-                (bx + side * _i(9*s), cy - hr + _i(4*s)),
-            ]
-            pygame.draw.polygon(surf, EAR_PINK, inner)
+            tip_x = cx + side * _i(16 * s)
+            tip_y = cy - hr - _i(4 * s)
+            base_l = cx + side * _i(8 * s)
+            base_r = cx + side * _i(20 * s)
+            pygame.draw.polygon(surf, BODY, [
+                (base_l, cy - hr + _i(3 * s)),
+                (tip_x, tip_y),
+                (base_r, cy - hr + _i(3 * s)),
+            ])
 
-        # mini eyes
-        er = max(2, _i(5*s))
-        pr = max(1, _i(2.5*s))
+        # eyes
+        er = max(2, _i(6 * s))
+        pr = max(1, _i(3 * s))
         for side in (-1, 1):
-            ex = cx + side * _i(8*s)
-            ey = cy - _i(2*s)
+            ex = cx + side * _i(8 * s)
+            ey = cy - _i(1 * s)
             pygame.draw.circle(surf, EYE_WHITE, (ex, ey), er)
             pygame.draw.circle(surf, PUPIL, (ex, ey), pr)
 
-        # mini mouth
-        mr = max(1, _i(2*s))
-        rect = pygame.Rect(cx - _i(5*s), cy + _i(4*s), _i(10*s), _i(5*s))
-        pygame.draw.arc(surf, MOUTH_COLOR, rect,
-                        math.pi + 0.6, 2*math.pi - 0.6, max(1, _i(1.2*s)))
-
     # ── body parts ───────────────────────────────────────────────────
 
-    def _head(self, surf, cx, cy, s):
-        pygame.draw.circle(surf, BODY, (cx, cy), _i(22*s))
+    def _head(self, surf, cx, cy, hr):
+        pygame.draw.circle(surf, BODY, (cx, cy), hr)
 
     def _body(self, surf, cx, by, s):
-        w, h = _i(42*s), _i(16*s)
-        r = pygame.Rect(cx - w//2, by, w, h)
-        pygame.draw.ellipse(surf, BODY, r)
-        pygame.draw.ellipse(surf, BODY_LIGHT, r, max(1, _i(s)))
+        w, h = _i(44 * s), _i(14 * s)
+        rect = pygame.Rect(cx - w // 2, by, w, h)
+        pygame.draw.ellipse(surf, BODY, rect)
 
     def _ears(self, surf, cx, cy, hr, s):
-        ear_h = _i(12*s)
+        """Soft, rounded cat ears — wider than tall."""
+        ear_h = _i(10 * s)      # how far ears poke above head
+        ear_w = _i(14 * s)      # half-width of each ear
+
         for side in (-1, 1):
-            bx = cx + side * _i(14*s)
-            by = cy - hr + _i(6*s)
-            tx = cx + side * _i(18*s)
-            ty = cy - hr - ear_h + _i(4*s)
+            # ear tip sits above and outward from head
+            tip_x = cx + side * _i(17 * s)
+            tip_y = cy - hr - ear_h + _i(2 * s)
 
-            # wiggle when listening
             if self.state == LISTENING:
-                ty += _i(math.sin(self._st * 8) * 2 * s * side)
+                tip_y -= _i(2 * s * abs(math.sin(self._st * 6)))
 
-            outer = [
-                (bx - side * _i(6*s), by),
-                (tx, ty),
-                (bx + side * _i(6*s), by),
-            ]
-            pygame.draw.polygon(surf, BODY, outer)
+            # base points merge smoothly into the head circle
+            base_inner = cx + side * _i(6 * s)
+            base_outer = cx + side * _i(22 * s)
+            base_y = cy - hr + _i(6 * s)
 
-            inner = [
-                (bx - side * _i(3*s), by - _i(1*s)),
-                (tx - side * _i(1*s), ty + _i(4*s)),
-                (bx + side * _i(3*s), by - _i(1*s)),
+            # outer ear
+            pts = [(base_inner, base_y), (tip_x, tip_y), (base_outer, base_y)]
+            pygame.draw.polygon(surf, BODY, pts)
+            # smooth the base into head with a small circle
+            pygame.draw.circle(surf, BODY,
+                (cx + side * _i(14 * s), cy - hr + _i(3 * s)), _i(6 * s))
+
+            # inner ear (subtle, darker shade — not bright pink)
+            inner_pts = [
+                (base_inner + side * _i(3 * s), base_y - _i(1 * s)),
+                (tip_x, tip_y + _i(4 * s)),
+                (base_outer - side * _i(3 * s), base_y - _i(1 * s)),
             ]
-            pygame.draw.polygon(surf, EAR_PINK, inner)
+            pygame.draw.polygon(surf, EAR_INNER, inner_pts)
 
     # ── eyes ─────────────────────────────────────────────────────────
 
     def _eyes(self, surf, cx, cy, s):
-        spacing = _i(10*s)
-        ey = cy - _i(2*s)
-        erx, ery = _i(8*s), _i(9*s)
-        pr = _i(4.5*s)
+        spacing = _i(11 * s)
+        ey = cy - _i(2 * s)
+        er = _i(10 * s)          # eye radius — BIG
+        pr = _i(5 * s)           # pupil radius
 
-        # state tweaks
         if self.state == LISTENING:
-            erx, ery, pr = _i(9*s), _i(10*s), _i(5*s)
+            er = _i(11 * s)
+            pr = _i(5.5 * s)
 
         # blink?
         blink = (self._bt % self.BLINK_EVERY) > (self.BLINK_EVERY - self.BLINK_DUR)
@@ -183,69 +179,72 @@ class MonaAvatar:
         # pupil offset
         px, py = 0, 0
         if self.state == THINKING:
-            px = _i(3*s * math.sin(self._st * 1.5))
-            py = _i(-2*s * math.cos(self._st * 1.5))
+            px = _i(3 * s * math.sin(self._st * 1.5))
+            py = _i(-2 * s * math.cos(self._st * 1.5))
         elif self.state == SPEAKING:
-            py = _i(1*s)
+            py = _i(1 * s)
 
         for side in (-1, 1):
             ex = cx + side * spacing
             if blink:
-                # closed-eye arc
                 pygame.draw.line(surf, EYE_WHITE,
-                    (ex - erx, ey), (ex + erx, ey), max(2, _i(2*s)))
+                    (ex - _i(7*s), ey), (ex + _i(7*s), ey),
+                    max(2, _i(2 * s)))
             else:
-                rect = pygame.Rect(ex - erx, ey - ery, erx*2, ery*2)
-                pygame.draw.ellipse(surf, EYE_WHITE, rect)
-                pygame.draw.circle(surf, PUPIL, (ex + px, ey + py), max(1, pr))
-                # primary shine
-                sr = max(1, _i(2*s))
+                # white of eye
+                pygame.draw.circle(surf, EYE_WHITE, (ex, ey), max(2, er))
+                # pupil
+                pygame.draw.circle(surf, PUPIL,
+                    (ex + px, ey + py), max(1, pr))
+                # primary highlight (top-left)
+                sh = max(1, _i(2.5 * s))
                 pygame.draw.circle(surf, SHINE,
-                    (ex + px - _i(2*s), ey + py - _i(2*s)), sr)
-                # secondary shine (smaller, lower-right)
-                sr2 = max(1, _i(1*s))
-                pygame.draw.circle(surf, (255, 255, 255),
-                    (ex + px + _i(1*s), ey + py + _i(1*s)), sr2)
+                    (ex + px - _i(3 * s), ey + py - _i(3 * s)), sh)
+                # secondary highlight (bottom-right, smaller)
+                sh2 = max(1, _i(1.2 * s))
+                pygame.draw.circle(surf, SHINE,
+                    (ex + px + _i(1.5 * s), ey + py + _i(1.5 * s)), sh2)
 
     # ── mouth ────────────────────────────────────────────────────────
 
     def _mouth(self, surf, cx, cy, s):
-        my = cy + _i(10*s)
+        my = cy + _i(11 * s)
 
         if self.state == HAPPY:
-            rect = pygame.Rect(cx - _i(8*s), my - _i(4*s), _i(16*s), _i(10*s))
+            rect = pygame.Rect(cx - _i(7*s), my - _i(3*s), _i(14*s), _i(8*s))
             pygame.draw.arc(surf, MOUTH_COLOR, rect,
-                            math.pi + 0.3, 2*math.pi - 0.3, max(2, _i(2*s)))
+                            math.pi + 0.4, 2*math.pi - 0.4, max(2, _i(2*s)))
         elif self.state == SPEAKING:
             o = 0.3 + 0.7 * abs(math.sin(self._st * 5))
-            h = max(2, _i(5*s*o))
-            w = _i(5*s)
+            h = max(2, _i(4 * s * o))
+            w = _i(4 * s)
             pygame.draw.ellipse(surf, MOUTH_COLOR,
-                pygame.Rect(cx - w, my, w*2, h))
+                pygame.Rect(cx - w, my, w * 2, h))
         elif self.state == LISTENING:
-            pygame.draw.circle(surf, MOUTH_COLOR, (cx, my + _i(2*s)),
-                               max(2, _i(3*s)))
+            pygame.draw.circle(surf, MOUTH_COLOR,
+                (cx, my + _i(1*s)), max(2, _i(2.5*s)))
         else:
-            rect = pygame.Rect(cx - _i(6*s), my - _i(2*s), _i(12*s), _i(6*s))
+            # gentle smile
+            rect = pygame.Rect(cx - _i(5*s), my - _i(1*s), _i(10*s), _i(5*s))
             pygame.draw.arc(surf, MOUTH_COLOR, rect,
                             math.pi + 0.5, 2*math.pi - 0.5, max(1, _i(1.5*s)))
 
     # ── tentacles ────────────────────────────────────────────────────
 
     def _tentacles(self, surf, cx, top_y, s):
-        speed = 5.0 if self.state == SPEAKING else 2.5
-        amp   = 4*s if self.state == SPEAKING else 2.5*s
+        speed = 4.5 if self.state == SPEAKING else 2.0
+        amp   = 3.5*s if self.state == SPEAKING else 2.0*s
 
         for i in range(5):
             tx = cx - _i(16*s) + i * _i(8*s)
-            wave = math.sin(self._t * speed + i * 0.7) * amp
+            wave = math.sin(self._t * speed + i * 0.8) * amp
 
             prev = (tx, top_y)
             for j in range(1, 4):
                 t = j / 3
                 jx = _i(tx + wave * t * t)
-                jy = _i(top_y + 12*s * t)
-                w = max(1, _i((3.5 - j) * s))
+                jy = _i(top_y + 10 * s * t)
+                w = max(1, _i((3 - j * 0.7) * s))
                 pygame.draw.line(surf, BODY_LIGHT, prev, (jx, jy), w)
                 prev = (jx, jy)
 
@@ -261,9 +260,9 @@ class MonaAvatar:
             return
 
         pulse = 0.5 + 0.5 * math.sin(self._st * 3)
-        r = _i((32 + 8 * pulse) * s)
+        r = _i((34 + 8 * pulse) * s)
         g = pygame.Surface((r*2, r*2), pygame.SRCALPHA)
-        a = _i(22 + 22 * pulse)
+        a = _i(20 + 20 * pulse)
         pygame.draw.circle(g, (*color, a), (r, r), r)
         surf.blit(g, (cx - r, cy - r))
 
@@ -271,37 +270,34 @@ class MonaAvatar:
 
     def _effects(self, surf, cx, cy, s):
         if self.state == THINKING:
-            # orbiting thought dots
             for i in range(3):
                 delay = i * 0.35
                 phase = (self._st - delay) % 1.4
                 if phase < 0.9:
-                    alpha = min(1.0, phase / 0.2) * max(0.0, 1 - (phase - 0.5) / 0.4)
-                    r = max(1, _i(3*s*alpha))
-                    dx = cx + _i(22*s) + i * _i(8*s)
-                    dy = cy - _i(14*s)
+                    frac = min(1.0, phase/0.2) * max(0.0, 1-(phase-0.5)/0.4)
+                    r = max(1, _i(3 * s * frac))
+                    dx = cx + _i(26*s) + i * _i(8*s)
+                    dy = cy - _i(16*s)
                     pygame.draw.circle(surf, GLOW_THINK, (dx, dy), r)
 
         elif self.state == LISTENING:
-            # sound-wave arcs radiating right
             for i in range(3):
                 phase = (self._st * 2 + i * 0.5) % 1.8
                 if phase < 1.2:
-                    arc_r = _i((12 + 16*phase) * s)
-                    a = _i(160 * (1 - phase / 1.2))
+                    arc_r = _i((14 + 16*phase) * s)
+                    a = _i(140 * (1 - phase / 1.2))
                     gs = pygame.Surface((arc_r*2, arc_r*2), pygame.SRCALPHA)
                     pygame.draw.arc(gs, (*GLOW_LISTEN, a),
                         (0, 0, arc_r*2, arc_r*2),
-                        -0.6, 0.6, max(2, _i(2*s)))
-                    surf.blit(gs, (cx + _i(22*s) - arc_r, cy - arc_r))
+                        -0.5, 0.5, max(2, _i(2*s)))
+                    surf.blit(gs, (cx + _i(24*s) - arc_r, cy - arc_r))
 
         elif self.state == HAPPY:
-            # sparkle stars
             for i in range(5):
                 angle = self._st * 1.8 + i * (2*math.pi / 5)
-                dist = _i(30*s)
+                dist = _i(32*s)
                 sx = cx + _i(dist * math.cos(angle))
                 sy = cy + _i(dist * math.sin(angle))
-                sz = max(1, _i(2.5*s * abs(math.sin(self._st * 4 + i))))
+                sz = max(1, _i(2.5*s * abs(math.sin(self._st*4 + i))))
                 pygame.draw.line(surf, GLOW_HAPPY, (sx-sz, sy), (sx+sz, sy), 1)
                 pygame.draw.line(surf, GLOW_HAPPY, (sx, sy-sz), (sx, sy+sz), 1)
