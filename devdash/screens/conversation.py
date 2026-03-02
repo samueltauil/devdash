@@ -27,7 +27,6 @@ BUBBLE_PAD  = 10
 MAX_BUBBLE_W = 430
 
 # Brand
-TITLE       = "D E V D A S H"
 SUBTITLE    = "Voice AI Companion"
 
 
@@ -164,27 +163,63 @@ class ConversationScreen:
         mona_h = min(avail, 180)
         self.mona.draw(self.r.screen, self.r.width // 2, mid_y - 10, size=mona_h)
 
-        # title below Mona
+        # ── Stylish DEVDASH title ────────────────────────────────────
         ty = mid_y + mona_h // 2 - 5
-        f_h = self.r.fonts.get("heading", self.r.fonts["body"])
-        tw = f_h.size(TITLE)[0]
-        self.r.draw_text(TITLE, (self.r.width - tw) // 2, ty, "heading", "text")
+        accent = self.r.colors.get("accent", (233, 69, 96))
+        info = self.r.colors.get("info", (41, 121, 255))
 
-        # decorative line
-        line_y = ty + 28
-        lw = 160
-        lx = (self.r.width - lw) // 2
-        accent = self.r.colors.get("accent", (233,69,96))
+        # Render each letter with gradient color shift
+        letters = "DEVDASH"
+        font = self.r.fonts.get("large", self.r.fonts["heading"])
+        spacing = 4  # extra space between letters
+
+        # Measure total width
+        total_w = sum(font.size(ch)[0] for ch in letters) + spacing * (len(letters) - 1)
+        lx = (self.r.width - total_w) // 2
+
+        # Gradient: accent → info → accent across letters
+        t_val = time.time()
+        for idx, ch in enumerate(letters):
+            t = idx / (len(letters) - 1)
+            # Smooth gradient with subtle time-based shimmer
+            phase = 0.5 + 0.5 * math.sin(t * math.pi + t_val * 0.8)
+            r = int(accent[0] + (info[0] - accent[0]) * phase)
+            g = int(accent[1] + (info[1] - accent[1]) * phase)
+            b = int(accent[2] + (info[2] - accent[2]) * phase)
+
+            # Glow layer (slightly larger, semi-transparent)
+            glow_surf = font.render(ch, True, (r, g, b))
+            glow_surf.set_alpha(40)
+            self.r.screen.blit(glow_surf, (lx - 1, ty - 1))
+            self.r.screen.blit(glow_surf, (lx + 1, ty + 1))
+
+            # Main letter
+            letter_surf = font.render(ch, True, (r, g, b))
+            self.r.screen.blit(letter_surf, (lx, ty))
+
+            lx += font.size(ch)[0] + spacing
+
+        # Decorative gradient line
+        line_y = ty + 36
+        lw = 200
+        line_x = (self.r.width - lw) // 2
         for i in range(lw):
             t = i / lw
-            a = int(255 * (1 - abs(t - 0.5) * 2) ** 2)
-            pygame.draw.line(self.r.screen, (*accent[:3],),
-                (lx + i, line_y), (lx + i, line_y), 1)
+            fade = (1 - abs(t - 0.5) * 2) ** 1.5
+            phase = 0.5 + 0.5 * math.sin(t * math.pi * 2 + t_val * 1.2)
+            r = int(accent[0] + (info[0] - accent[0]) * phase)
+            g = int(accent[1] + (info[1] - accent[1]) * phase)
+            b = int(accent[2] + (info[2] - accent[2]) * phase)
+            a = int(200 * fade)
+            dot_s = pygame.Surface((1, 2), pygame.SRCALPHA)
+            dot_s.fill((r, g, b, a))
+            self.r.screen.blit(dot_s, (line_x + i, line_y))
 
-        # subtitle
+        # Subtitle with softer styling
+        sub_y = line_y + 8
         f_s = self.r.fonts.get("body", self.r.fonts["body"])
         sw = f_s.size(SUBTITLE)[0]
-        self.r.draw_text(SUBTITLE, (self.r.width - sw) // 2, line_y + 6,
+        self.r.draw_text(SUBTITLE, (self.r.width - sw) // 2, sub_y,
                          "body", "text_dim")
 
     # ── chat mode ────────────────────────────────────────────────────
